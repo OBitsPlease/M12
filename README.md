@@ -1,0 +1,37 @@
+# BitsPleaseYT M12
+
+BitsPleaseYT M12 is a real-time 12-band multiband compressor for Windows, macOS, and Linux. It uses eleven fourth-order Linkwitz-Riley IIR crossovers, independent compression controls for every band, global relative controls, solo/bypass, presets, and live metering.
+
+## Windows
+
+Run `BitsPleaseYT-M12-Windows-x64-Setup.exe`, or extract the Windows ZIP for a portable installation. The native Windows edition supports WASAPI playback capture and recording inputs.
+
+## macOS
+
+Open the DMG and copy **BitsPleaseYT M12** to Applications. The portable edition uses CoreAudio through PortAudio. A virtual input such as BlackHole is required for playback capture.
+
+## Linux
+
+Mark the AppImage executable and run it:
+
+```bash
+chmod +x BitsPleaseYT-M12-Linux-*.AppImage
+./BitsPleaseYT-M12-Linux-*.AppImage
+```
+
+A tarball is also supplied. PipeWire/PulseAudio monitor sources can provide playback capture.
+
+## Build
+
+```powershell
+dotnet build DiscordMultiband.csproj
+dotnet build portable/BitsPleaseYTM6.Portable.csproj
+```
+
+Both projects read their version from `Directory.Build.props`. For a future release from a clean working tree, run:
+
+```powershell
+.\scripts\Release.ps1 -Version 1.0.1
+```
+
+The script updates shared and macOS versions, validates both builds, commits, tags, and pushes. Tagged builds automatically publish installers and portable packages on GitHub Releases.

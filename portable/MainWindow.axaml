@@ -1,0 +1,128 @@
+<Window xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:primitives="using:Avalonia.Controls.Primitives"
+                x:Class="BitsPleaseYTM6.Portable.MainWindow"
+                x:CompileBindings="False"
+                Title="BitsPleaseYT M12 | 12-Band Compressor"
+                Icon="/Assets/AppIcon.png"
+                Width="1500" Height="960" MinWidth="1200" MinHeight="820"
+                Background="#101216" Foreground="#E8EAF0">
+    <Window.Resources>
+        <ControlTheme x:Key="MetalSliderThumbTheme" TargetType="primitives:Thumb">
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Color="#FFFFFF" Offset="0"/>
+                    <GradientStop Color="#D9DCE1" Offset="0.42"/>
+                    <GradientStop Color="#9DA3AC" Offset="0.72"/>
+                    <GradientStop Color="#EEF0F3" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#F8F9FA"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" BoxShadow="0 2 4 0 #B3000000"/>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+    </Window.Resources>
+    <Window.Styles>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#090A0C"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#626873"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="MinHeight" Value="32"/>
+        </Style>
+        <Style Selector="ComboBoxItem">
+            <Setter Property="Background" Value="#090A0C"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style Selector="Slider">
+            <Setter Property="Background" Value="#30343B"/>
+            <Setter Property="Foreground" Value="#D9DCE1"/>
+            <Setter Property="MinHeight" Value="18"/>
+        </Style>
+        <Style Selector="Slider /template/ Thumb">
+            <Setter Property="Theme" Value="{StaticResource MetalSliderThumbTheme}"/>
+        </Style>
+    </Window.Styles>
+    <Grid Margin="14" RowDefinitions="Auto,220,*,86">
+        <Grid ColumnDefinitions="Auto,*,Auto,*,Auto" ColumnSpacing="12">
+            <StackPanel Margin="0,0,14,0">
+                <TextBlock Text="BitsPleaseYT M12" FontSize="25" FontWeight="SemiBold"/>
+                <TextBlock Text="12-BAND MULTIBAND COMPRESSOR" FontSize="10" Foreground="#F25FCA"/>
+            </StackPanel>
+            <ComboBox x:Name="InputBox" Grid.Column="1"/>
+            <TextBlock Grid.Column="2" Text="TO" VerticalAlignment="Center" Foreground="#89919E"/>
+            <ComboBox x:Name="OutputBox" Grid.Column="3"/>
+            <Button x:Name="StartButton" Grid.Column="4" Content="START AUDIO" Click="StartButton_Click"
+                            Background="#A8D72E" Foreground="#111318" FontWeight="SemiBold" Padding="18,8"/>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,10,0,8" RowDefinitions="*,58">
+            <Border Background="#111317" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5" ClipToBounds="True">
+                <Canvas x:Name="GraphCanvas" SizeChanged="GraphCanvas_SizeChanged"/>
+            </Border>
+            <ItemsControl Grid.Row="1" ItemsSource="{Binding Crossovers}">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="8,5" RowDefinitions="Auto,*">
+                              <TextBlock Text="{Binding Frequency, StringFormat='{}{0:F0} Hz'}" HorizontalAlignment="Center" Foreground="#CED2D9" FontSize="11"/>
+                            <Slider Grid.Row="1" Minimum="{Binding Minimum}" Maximum="{Binding Maximum}" Value="{Binding Frequency}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding Bands}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="2" Columns="6"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="#202329" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5" Margin="3" Padding="10">
+                        <StackPanel Spacing="3">
+                            <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="{Binding Color}"/>
+                            <TextBlock Text="{Binding FrequencyLabel}" FontSize="10" Foreground="#9299A5" Margin="0,0,0,8"/>
+                            <ToggleSwitch Content="SOLO" IsChecked="{Binding IsSolo}"/>
+                            <ToggleSwitch Content="BYPASS" IsChecked="{Binding IsBypassed}"/>
+                            <TextBlock Text="{Binding Threshold, StringFormat='THRESH  {0:F1} dB'}" FontSize="10"/>
+                            <Slider Minimum="-60" Maximum="0" Value="{Binding Threshold}"/>
+                            <TextBlock Text="{Binding Ratio, StringFormat='RATIO  {0:F1}:1'}" FontSize="10"/>
+                            <Slider Minimum="1" Maximum="20" Value="{Binding Ratio}"/>
+                            <TextBlock Text="{Binding Range, StringFormat='RANGE  {0:F1} dB'}" FontSize="10"/>
+                            <Slider Minimum="0" Maximum="30" Value="{Binding Range}"/>
+                            <TextBlock Text="{Binding MakeupGain, StringFormat='GAIN  {0:F1} dB'}" FontSize="10"/>
+                            <Slider Minimum="-12" Maximum="12" Value="{Binding MakeupGain}"/>
+                            <TextBlock Text="{Binding Attack, StringFormat='ATTACK  {0:F1} ms'}" FontSize="10"/>
+                            <Slider Minimum="0.5" Maximum="100" Value="{Binding Attack}"/>
+                            <TextBlock Text="{Binding Release, StringFormat='RELEASE  {0:F0} ms'}" FontSize="10"/>
+                            <Slider Minimum="20" Maximum="1000" Value="{Binding Release}"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Border Grid.Row="3" Margin="0,8,0,0" Background="#1B1E23" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5" Padding="14">
+            <Grid ColumnDefinitions="*,*,*,2*" ColumnSpacing="24">
+                <StackPanel><TextBlock Text="KNEE" FontSize="10" Foreground="#8F96A2"/><Slider x:Name="KneeSlider" Minimum="0" Maximum="18" Value="6"/></StackPanel>
+                <StackPanel Grid.Column="1"><TextBlock Text="OUTPUT GAIN" FontSize="10" Foreground="#8F96A2"/><Slider x:Name="OutputSlider" Minimum="-18" Maximum="12" Value="0"/></StackPanel>
+                <ToggleSwitch x:Name="AutoReleaseSwitch" Grid.Column="2" Content="AUTO RELEASE" IsChecked="True" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="3">
+                    <TextBlock x:Name="StatusText" Text="Select a capture/monitor input and an output device."
+                                         Foreground="#AEB4BE" TextWrapping="Wrap"/>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16" Margin="0,8,0,0">
+                        <ProgressBar x:Name="InputMeter" Minimum="-60" Maximum="0" Value="-60" Height="8"/>
+                        <ProgressBar x:Name="OutputMeter" Grid.Column="1" Minimum="-60" Maximum="0" Value="-60" Height="8" Foreground="#F25FCA"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

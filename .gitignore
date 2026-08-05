@@ -1,0 +1,15 @@
+bin/
+obj/
+release/
+artifacts/
+portable/bin/
+portable/obj/
+*.user
+*.suo
+*.pdb
+DiscordMultiband_*_wpftmp.csproj
+.vs/
+.idea/
+.DS_Store
+Benchmark/
+Tools/

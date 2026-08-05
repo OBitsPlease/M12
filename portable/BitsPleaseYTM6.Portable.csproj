@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>BitsPleaseYT-M12</AssemblyName>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="NAudio.Core" Version="2.2.1" />
+    <PackageReference Include="org.k2fsa.portaudio.runtime.linux-aarch64" Version="1.0.6" />
+    <PackageReference Include="org.k2fsa.portaudio.runtime.linux-x64" Version="1.0.6" />
+    <PackageReference Include="org.k2fsa.portaudio.runtime.osx-arm64" Version="1.0.6" />
+    <PackageReference Include="org.k2fsa.portaudio.runtime.osx-x64" Version="1.0.6" />
+    <PackageReference Include="PortAudioSharp2" Version="1.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="..\Assets\AppIcon.png" Link="Assets\AppIcon.png" />
+    <Compile Include="..\BandSettings.cs" Link="Shared\BandSettings.cs" />
+    <Compile Include="..\CrossoverSetting.cs" Link="Shared\CrossoverSetting.cs" />
+    <Compile Include="..\MultibandProcessor.cs" Link="Shared\MultibandProcessor.cs" />
+  </ItemGroup>
+</Project>

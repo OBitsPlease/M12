@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>BitsPleaseYT-M12</AssemblyName>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Benchmark\**\*.cs" />
+    <EmbeddedResource Remove="Benchmark\**\*" />
+    <None Remove="Benchmark\**\*" />
+    <Compile Remove="portable\**\*.cs" />
+    <EmbeddedResource Remove="portable\**\*" />
+    <None Remove="portable\**\*" />
+    <Page Remove="portable\**\*" />
+  </ItemGroup>
+
+</Project>

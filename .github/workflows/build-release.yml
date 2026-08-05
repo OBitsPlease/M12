@@ -1,0 +1,142 @@
+name: Build installers
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Windows x64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Publish Windows edition
+        run: >-
+          dotnet publish DiscordMultiband.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          --output artifacts/windows-publish
+      - name: Build ZIP and installer
+        shell: pwsh
+        run: |
+          New-Item artifacts/release-assets -ItemType Directory -Force | Out-Null
+          Copy-Item README.md artifacts/windows-publish/
+          Compress-Archive artifacts/windows-publish/* artifacts/release-assets/BitsPleaseYT-M12-Windows-x64.zip
+          choco install innosetup --no-progress -y
+          [xml]$props = Get-Content Directory.Build.props
+          $version = $props.Project.PropertyGroup.Version
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$version" "/DSourceDir=$pwd\artifacts\windows-publish" "/DOutputDir=$pwd\artifacts\release-assets" installer/windows.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-assets
+          path: artifacts/release-assets/*
+          if-no-files-found: error
+
+  portable:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64
+            os: ubuntu-latest
+            rid: linux-x64
+            arch: x86_64
+            artifact: BitsPleaseYT-M12-Linux-x64
+          - name: Linux ARM64
+            os: ubuntu-24.04-arm
+            rid: linux-arm64
+            arch: aarch64
+            artifact: BitsPleaseYT-M12-Linux-arm64
+          - name: macOS Intel
+            os: macos-15-intel
+            rid: osx-x64
+            artifact: BitsPleaseYT-M12-macOS-x64
+          - name: macOS Apple Silicon
+            os: macos-14
+            rid: osx-arm64
+            artifact: BitsPleaseYT-M12-macOS-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Publish portable edition
+        run: >-
+          dotnet publish portable/BitsPleaseYTM6.Portable.csproj
+          --configuration Release
+          --runtime ${{ matrix.rid }}
+          --self-contained true
+          -p:PublishSingleFile=false
+          --output artifacts/publish
+      - name: Build macOS DMG and ZIP
+        if: startsWith(matrix.rid, 'osx-')
+        shell: bash
+        run: |
+          set -e
+          mkdir -p "staging/BitsPleaseYT M12.app/Contents/MacOS" "staging/BitsPleaseYT M12.app/Contents/Resources" artifacts/release-assets icon.iconset
+          cp -R artifacts/publish/. "staging/BitsPleaseYT M12.app/Contents/MacOS/"
+          cp portable/Info.plist "staging/BitsPleaseYT M12.app/Contents/Info.plist"
+          for size in 16 32 128 256 512; do
+            sips -z "$size" "$size" Assets/AppIcon.png --out "icon.iconset/icon_${size}x${size}.png" >/dev/null
+            double=$((size * 2))
+            sips -z "$double" "$double" Assets/AppIcon.png --out "icon.iconset/icon_${size}x${size}@2x.png" >/dev/null
+          done
+          iconutil -c icns icon.iconset -o "staging/BitsPleaseYT M12.app/Contents/Resources/AppIcon.icns"
+          chmod +x "staging/BitsPleaseYT M12.app/Contents/MacOS/BitsPleaseYT-M12"
+          ditto -c -k --sequesterRsrc --keepParent "staging/BitsPleaseYT M12.app" "artifacts/release-assets/${{ matrix.artifact }}.zip"
+          hdiutil create -volname "BitsPleaseYT M12" -srcfolder staging -ov -format UDZO "artifacts/release-assets/${{ matrix.artifact }}.dmg"
+      - name: Build Linux AppImage and tarball
+        if: startsWith(matrix.rid, 'linux-')
+        shell: bash
+        run: |
+          set -e
+          mkdir -p AppDir/usr/bin AppDir/usr/share/icons/hicolor/1024x1024/apps artifacts/release-assets
+          cp -R artifacts/publish/. AppDir/usr/bin/
+          cp Assets/AppIcon.png AppDir/BitsPleaseYT-M12.png
+          cp Assets/AppIcon.png AppDir/usr/share/icons/hicolor/1024x1024/apps/BitsPleaseYT-M12.png
+          printf '[Desktop Entry]\nType=Application\nName=BitsPleaseYT M12\nExec=BitsPleaseYT-M12\nIcon=BitsPleaseYT-M12\nCategories=AudioVideo;Audio;\nTerminal=false\n' > AppDir/BitsPleaseYT-M12.desktop
+          printf '#!/bin/sh\nexec "$APPDIR/usr/bin/BitsPleaseYT-M12" "$@"\n' > AppDir/AppRun
+          chmod +x AppDir/AppRun AppDir/usr/bin/BitsPleaseYT-M12
+          tar -C artifacts/publish -czf "artifacts/release-assets/${{ matrix.artifact }}.tar.gz" .
+          curl -L -o appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
+          chmod +x appimagetool
+          ARCH=${{ matrix.arch }} ./appimagetool --appimage-extract-and-run AppDir "artifacts/release-assets/${{ matrix.artifact }}.AppImage"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}-release-assets
+          path: artifacts/release-assets/*
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, portable]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: downloads
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: downloads/*
