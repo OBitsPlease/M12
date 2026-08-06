@@ -7,7 +7,7 @@ portable/obj/
 *.user
 *.suo
 *.pdb
-DiscordMultiband_*_wpftmp.csproj
+MultibandCore_*_wpftmp.csproj
 .vs/
 .idea/
 .DS_Store

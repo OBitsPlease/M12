@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -12,6 +12,10 @@
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\BitsPleaseYT Suite\SuiteTelemetryProtocol.cs" Link="SuiteTelemetryProtocol.cs" />
   </ItemGroup>
 
   <ItemGroup>

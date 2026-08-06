@@ -2,7 +2,7 @@ using System.Buffers.Binary;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 
-namespace DiscordMultiband;
+namespace MultibandCore;
 
 public sealed class AudioEngine : IDisposable
 {

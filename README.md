@@ -24,7 +24,7 @@ A tarball is also supplied. PipeWire/PulseAudio monitor sources can provide play
 ## Build
 
 ```powershell
-dotnet build DiscordMultiband.csproj
+dotnet build MultibandCore.csproj
 dotnet build portable/BitsPleaseYTM6.Portable.csproj
 ```
 

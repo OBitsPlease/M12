@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace DiscordMultiband;
+namespace MultibandCore;
 
 public sealed class CompressorGraph : FrameworkElement
 {

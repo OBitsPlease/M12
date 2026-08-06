@@ -6,7 +6,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
-using DiscordMultiband;
+using MultibandCore;
 
 namespace BitsPleaseYTM6.Portable;
 

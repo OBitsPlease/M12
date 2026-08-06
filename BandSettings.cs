@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace DiscordMultiband;
+namespace MultibandCore;
 
 public sealed class BandSettings : INotifyPropertyChanged
 {

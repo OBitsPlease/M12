@@ -1,6 +1,6 @@
 using NAudio.Dsp;
 
-namespace DiscordMultiband;
+namespace MultibandCore;
 
 public sealed class MultibandProcessor
 {
@@ -44,13 +44,15 @@ public sealed class MultibandProcessor
 
     public float Process(float input)
     {
-        var residual = input;
-        for (var index = 0; index < _crossovers.Length; index++)
+        var previousLow = _crossovers[0].LowPass(input);
+        _bandSamples[0] = previousLow;
+        for (var index = 1; index < _crossovers.Length; index++)
         {
-            _bandSamples[index] = _crossovers[index].LowPass(residual);
-            residual = _crossovers[index].HighPass(residual);
+            var low = _crossovers[index].LowPass(input);
+            _bandSamples[index] = low - previousLow;
+            previousLow = low;
         }
-        _bandSamples[^1] = residual;
+        _bandSamples[^1] = input - previousLow;
 
         var anySolo = _settings.Any(setting => setting.IsSolo);
         var output = 0.0;

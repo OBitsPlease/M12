@@ -30,7 +30,7 @@ $plist = $plist -replace '(<key>CFBundleShortVersionString</key>\s*<string>)[^<]
 $plist = $plist -replace '(<key>CFBundleVersion</key>\s*<string>)[^<]+', "`${1}$Version"
 Set-Content $plistPath $plist -NoNewline
 
-dotnet build DiscordMultiband.csproj --configuration Release
+dotnet build MultibandCore.csproj --configuration Release
 dotnet build portable/BitsPleaseYTM6.Portable.csproj --configuration Release
 
 git add Directory.Build.props portable/Info.plist

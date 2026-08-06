@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
@@ -6,14 +6,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using BitsPleaseYT.SuiteIpc;
 
-namespace DiscordMultiband;
+namespace MultibandCore;
 
 public partial class MainWindow : Window
 {
     private const int BandCount = 12;
     private readonly AudioEngine _audioEngine;
     private readonly DispatcherTimer _meterTimer;
+    private readonly SuiteTelemetryReader? _suiteTelemetry = App.IsSuiteControlMode ? new("M12") : null;
     private readonly string _routeSettingsPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "BitsPleaseYT M12",
@@ -22,6 +24,10 @@ public partial class MainWindow : Window
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "BitsPleaseYT M12",
         "presets.json");
+    private readonly string _suiteStatePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "BitsPleaseYT M12",
+        "suite-state.json");
     private readonly Dictionary<string, UserPreset> _userPresets = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, double> _globalControlValues = new(StringComparer.Ordinal);
     private bool _loadingPreset;
@@ -45,6 +51,10 @@ public partial class MainWindow : Window
         {
             crossover.PropertyChanged += Crossover_PropertyChanged;
         }
+        foreach (var band in Bands)
+        {
+            band.PropertyChanged += Band_PropertyChanged;
+        }
 
         _meterTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         _meterTimer.Tick += MeterTimer_Tick;
@@ -57,6 +67,15 @@ public partial class MainWindow : Window
         ApplyPreset(initialPreset);
         PresetNameBox.Text = _userPresets.ContainsKey(initialPreset) ? initialPreset : string.Empty;
         _isUiReady = true;
+        SaveSuiteState();
+        if (App.IsSuiteControlMode)
+        {
+            InputDeviceBox.IsEnabled = false;
+            OutputDeviceBox.IsEnabled = false;
+            StartButton.IsEnabled = false;
+            StartButton.Content = "SUITE ROUTING";
+            StatusText.Text = "CONTROLLED BY SUITE HUB";
+        }
         Loaded += (_, _) => Dispatcher.BeginInvoke(TryStartSavedRoute, DispatcherPriority.ContextIdle);
     }
 
@@ -163,6 +182,10 @@ public partial class MainWindow : Window
 
     private void StartButton_Click(object sender, RoutedEventArgs e)
     {
+        if (App.IsSuiteControlMode)
+        {
+            return;
+        }
         if (_audioEngine.IsRunning)
         {
             StopAudio();
@@ -239,7 +262,7 @@ public partial class MainWindow : Window
 
     private void TryStartSavedRoute()
     {
-        if (_savedRoute?.AutoStart == true &&
+        if (!App.IsSuiteControlMode && _savedRoute?.AutoStart == true &&
             InputDeviceBox.SelectedItem is AudioDevice input && input.Id == _savedRoute.InputId &&
             OutputDeviceBox.SelectedItem is AudioDevice output && output.Id == _savedRoute.OutputId)
         {
@@ -257,6 +280,16 @@ public partial class MainWindow : Window
         UpdateBandLabels();
         _audioEngine.QueueCrossovers(GetCrossoverFrequencies());
         ResponseGraph.InvalidateVisual();
+        SaveSuiteState();
+    }
+
+    private void Band_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(BandSettings.Level) or nameof(BandSettings.GainReduction))
+        {
+            return;
+        }
+        SaveSuiteState();
     }
 
     private void UpdateBandLabels()
@@ -275,6 +308,19 @@ public partial class MainWindow : Window
 
     private void MeterTimer_Tick(object? sender, EventArgs e)
     {
+        if (_suiteTelemetry?.TryRead(out var suite) == true)
+        {
+            for (var index = 0; index < Math.Min(Bands.Count, suite.BandLevels.Length); index++)
+            {
+                Bands[index].Level = suite.BandLevels[index];
+                Bands[index].GainReduction = suite.BandReductions[index];
+            }
+            InputMeter.Value = suite.InputLevel;
+            OutputMeter.Value = suite.OutputLevel;
+            StatusText.Text = suite.Active ? "SUITE · PROCESSING" : "CONTROLLED BY SUITE HUB";
+            ResponseGraph.InvalidateVisual();
+            return;
+        }
         var processor = _audioEngine.Processor;
         if (processor is not null)
         {
@@ -341,6 +387,32 @@ public partial class MainWindow : Window
             return;
         }
         _audioEngine.SetMasterControls(KneeSlider.Value, OutputSlider.Value, AutoReleaseCheck.IsChecked == true);
+        SaveSuiteState();
+    }
+
+    private void SaveSuiteState()
+    {
+        if (!_isUiReady)
+        {
+            return;
+        }
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_suiteStatePath)!);
+            var state = new SuiteState(
+                Crossovers.Select(crossover => crossover.Frequency).ToArray(),
+                Bands.Select(band => new SuiteBandState(
+                    band.Threshold, band.Ratio, band.Range, band.Attack, band.Release,
+                    band.MakeupGain, band.IsSolo, band.IsBypassed)).ToArray(),
+                KneeSlider.Value, OutputSlider.Value, AutoReleaseCheck.IsChecked == true);
+            var temporaryPath = _suiteStatePath + ".tmp";
+            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(state));
+            File.Move(temporaryPath, _suiteStatePath, true);
+        }
+        catch
+        {
+            // Suite control remains usable with the last successfully published state.
+        }
     }
 
     private void PresetBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -576,6 +648,7 @@ public partial class MainWindow : Window
     private void Window_Closing(object? sender, CancelEventArgs e)
     {
         _meterTimer.Stop();
+        _suiteTelemetry?.Dispose();
         _audioEngine.Dispose();
     }
 
@@ -590,6 +663,21 @@ public partial class MainWindow : Window
         bool AutoRelease,
         string Behavior);
     private sealed record BandPreset(
+        double Threshold,
+        double Ratio,
+        double Range,
+        double Attack,
+        double Release,
+        double MakeupGain,
+        bool IsSolo,
+        bool IsBypassed);
+    private sealed record SuiteState(
+        double[] Crossovers,
+        SuiteBandState[] Bands,
+        double Knee,
+        double OutputGain,
+        bool AutoRelease);
+    private sealed record SuiteBandState(
         double Threshold,
         double Ratio,
         double Range,
