@@ -15,10 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\BitsPleaseYT Suite\SuiteTelemetryProtocol.cs" Link="SuiteTelemetryProtocol.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Remove="Benchmark\**\*.cs" />
     <EmbeddedResource Remove="Benchmark\**\*" />
     <None Remove="Benchmark\**\*" />
