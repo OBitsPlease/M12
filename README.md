@@ -10,6 +10,19 @@ Run `BitsPleaseYT-M12-Windows-x64-Setup.exe`, or extract the Windows ZIP for a p
 
 Open the DMG and copy **BitsPleaseYT M12** to Applications. The portable edition uses CoreAudio through PortAudio. A virtual input such as BlackHole is required for playback capture.
 
+The macOS build is ad-hoc signed because this project does not currently have an
+Apple Developer Program certificate. If macOS says the app is damaged, first
+confirm that you downloaded it from the official GitHub release, copy it to
+Applications, and run:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/BitsPleaseYT M12.app"
+open "/Applications/BitsPleaseYT M12.app"
+```
+
+This removes Apple's download quarantine from this app only. A fully notarized,
+warning-free installer requires a paid Apple Developer Program membership.
+
 ## Linux
 
 Mark the AppImage executable and run it:
@@ -25,7 +38,7 @@ A tarball is also supplied. PipeWire/PulseAudio monitor sources can provide play
 
 ```powershell
 dotnet build MultibandCore.csproj
-dotnet build portable/BitsPleaseYTM6.Portable.csproj
+dotnet build portable/BitsPleaseYTM12.Portable.csproj
 ```
 
 Both projects read their version from `Directory.Build.props`. For a future release from a clean working tree, run:

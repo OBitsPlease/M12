@@ -22,5 +22,7 @@
   <string>10.15</string>
   <key>NSHighResolutionCapable</key>
   <true/>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>BitsPleaseYT M12 uses audio input devices to process live audio.</string>
 </dict>
 </plist>

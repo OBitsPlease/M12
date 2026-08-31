@@ -31,7 +31,7 @@ $plist = $plist -replace '(<key>CFBundleVersion</key>\s*<string>)[^<]+', "`${1}$
 Set-Content $plistPath $plist -NoNewline
 
 dotnet build MultibandCore.csproj --configuration Release
-dotnet build portable/BitsPleaseYTM6.Portable.csproj --configuration Release
+dotnet build portable/BitsPleaseYTM12.Portable.csproj --configuration Release
 
 git add Directory.Build.props portable/Info.plist
 git commit -m "Release v$Version"

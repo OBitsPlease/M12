@@ -1,0 +1,16 @@
+BitsPleaseYT M12 for macOS
+================================
+
+1. Drag "BitsPleaseYT M12" onto the Applications shortcut.
+2. Try to open BitsPleaseYT M12 from Applications.
+
+This open-source build is ad-hoc signed, but it is not Apple-notarized because
+the project does not currently have a paid Apple Developer Program certificate.
+
+If macOS says the app is damaged, confirm that this DMG came from the official
+https://github.com/OBitsPlease/M12 release. Then open Terminal and run:
+
+xattr -dr com.apple.quarantine "/Applications/BitsPleaseYT M12.app"
+open "/Applications/BitsPleaseYT M12.app"
+
+The xattr command removes Apple's download quarantine from this app only.

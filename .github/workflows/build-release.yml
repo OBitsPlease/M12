@@ -81,7 +81,7 @@ jobs:
           dotnet-version: 8.0.x
       - name: Publish portable edition
         run: >-
-          dotnet publish portable/BitsPleaseYTM6.Portable.csproj
+          dotnet publish portable/BitsPleaseYTM12.Portable.csproj
           --configuration Release
           --runtime ${{ matrix.rid }}
           --self-contained true
@@ -95,6 +95,8 @@ jobs:
           mkdir -p "staging/BitsPleaseYT M12.app/Contents/MacOS" "staging/BitsPleaseYT M12.app/Contents/Resources" artifacts/release-assets icon.iconset
           cp -R artifacts/publish/. "staging/BitsPleaseYT M12.app/Contents/MacOS/"
           cp portable/Info.plist "staging/BitsPleaseYT M12.app/Contents/Info.plist"
+          cp installer/macos-install.txt "staging/READ BEFORE INSTALLING.txt"
+          ln -s /Applications staging/Applications
           for size in 16 32 128 256 512; do
             sips -z "$size" "$size" Assets/AppIcon.png --out "icon.iconset/icon_${size}x${size}.png" >/dev/null
             double=$((size * 2))
@@ -102,6 +104,8 @@ jobs:
           done
           iconutil -c icns icon.iconset -o "staging/BitsPleaseYT M12.app/Contents/Resources/AppIcon.icns"
           chmod +x "staging/BitsPleaseYT M12.app/Contents/MacOS/BitsPleaseYT-M12"
+          codesign --force --deep --sign - "staging/BitsPleaseYT M12.app"
+          codesign --verify --deep --strict --verbose=2 "staging/BitsPleaseYT M12.app"
           ditto -c -k --sequesterRsrc --keepParent "staging/BitsPleaseYT M12.app" "artifacts/release-assets/${{ matrix.artifact }}.zip"
           hdiutil create -volname "BitsPleaseYT M12" -srcfolder staging -ov -format UDZO "artifacts/release-assets/${{ matrix.artifact }}.dmg"
       - name: Build Linux AppImage and tarball
