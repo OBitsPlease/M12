@@ -14,3 +14,18 @@ xattr -dr com.apple.quarantine "/Applications/BitsPleaseYT M12.app"
 open "/Applications/BitsPleaseYT M12.app"
 
 The xattr command removes Apple's download quarantine from this app only.
+
+AUDIO ROUTING
+-------------
+
+macOS does not expose audio from YouTube, Discord, or other applications as a
+normal input. Install a virtual CoreAudio device such as BlackHole, route the
+application audio into it, and select that device as M12's SOURCE.
+
+To send processed microphone audio into Discord, select your microphone or
+external sound card as SOURCE, select a virtual device as PROCESSED OUTPUT, and
+select that virtual device as Discord's microphone.
+
+USB and Thunderbolt audio interfaces appear as CoreAudio devices. Connect and
+power on the interface, grant M12 microphone access in System Settings, and
+click REFRESH in M12.

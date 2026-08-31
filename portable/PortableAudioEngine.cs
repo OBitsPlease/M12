@@ -23,8 +23,32 @@ public sealed class PortableAudioEngine : IDisposable
     public double OutputLevel => _processors.Length == 0 ? -60 : _processors.Max(processor => processor.OutputLevel);
     public int ConfiguredLatencyMilliseconds { get; private set; }
 
+    public (double Level, double Reduction) GetMeter(int bandIndex)
+    {
+        if (_processors.Length == 0)
+        {
+            return (-60, 0);
+        }
+
+        var meters = _processors.Select(processor => processor.GetMeter(bandIndex)).ToArray();
+        return (meters.Max(meter => meter.Level), meters.Max(meter => meter.Reduction));
+    }
+
     public static IReadOnlyList<PortableDevice> GetInputDevices() => GetDevices(true);
     public static IReadOnlyList<PortableDevice> GetOutputDevices() => GetDevices(false);
+
+    public void RefreshDeviceList()
+    {
+        if (IsRunning)
+        {
+            throw new InvalidOperationException("Stop audio before refreshing connected devices.");
+        }
+
+        PortAudio.Terminate();
+        _initialized = false;
+        PortAudio.Initialize();
+        _initialized = true;
+    }
 
     public void Start(PortableDevice input, PortableDevice output, double[] crossoverFrequencies)
     {
@@ -141,5 +165,5 @@ public sealed class PortableAudioEngine : IDisposable
 
 public sealed record PortableDevice(int Index, string Name, int Channels, double Latency)
 {
-    public override string ToString() => Name;
+    public override string ToString() => $"{Name} ({Channels} ch)";
 }
