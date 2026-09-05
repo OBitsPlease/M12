@@ -256,32 +256,32 @@
                         <Grid Margin="4">
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="THRESH" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalThresholdKnob" Grid.Row="1" Tag="Threshold" Minimum="-60" Maximum="0" Step="0.5" Value="-24" ValueFormat="0.0 dB" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set threshold for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalThresholdKnob" Grid.Row="1" Tag="Threshold" Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Move all thresholds together while preserving their differences"/>
                         </Grid>
                         <Grid Margin="4">
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="RATIO" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalRatioKnob" Grid.Row="1" Tag="Ratio" Minimum="1" Maximum="20" Step="0.1" Value="4" ValueFormat="0.0:1" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set ratio for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalRatioKnob" Grid.Row="1" Tag="Ratio" Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Move all ratios together while preserving their differences"/>
                         </Grid>
                         <Grid Margin="4">
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="RANGE" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalRangeKnob" Grid.Row="1" Tag="Range" Minimum="0" Maximum="30" Step="0.5" Value="12" ValueFormat="0.0 dB" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set range for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalRangeKnob" Grid.Row="1" Tag="Range" Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Move all ranges together while preserving their differences"/>
                         </Grid>
                         <Grid Margin="4">
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="GAIN" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalGainKnob" Grid.Row="1" Tag="MakeupGain" Minimum="-12" Maximum="12" Step="0.5" Value="0" ValueFormat="+0.0;-0.0;0.0 dB" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set makeup gain for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalGainKnob" Grid.Row="1" Tag="MakeupGain" Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Move all gains together while preserving their differences"/>
                         </Grid>
                         <Grid Margin="4">
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="ATTACK" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalAttackKnob" Grid.Row="1" Tag="Attack" Minimum="0.5" Maximum="100" Step="0.5" Value="10" ValueFormat="0.0 ms" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set attack for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalAttackKnob" Grid.Row="1" Tag="Attack" Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Move all attacks together while preserving their differences"/>
                         </Grid>
                         <Grid Margin="4">
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="RELEASE" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalReleaseKnob" Grid.Row="1" Tag="Release" Minimum="20" Maximum="1000" Step="5" Value="160" ValueFormat="0 ms" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set release for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalReleaseKnob" Grid.Row="1" Tag="Release" Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Move all releases together while preserving their differences"/>
                         </Grid>
                     </UniformGrid>
                 </Grid>

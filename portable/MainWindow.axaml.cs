@@ -1,6 +1,9 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Reflection;
+using System.Text.Json;
+using IOPath = System.IO.Path;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -17,6 +20,12 @@ public partial class MainWindow : Window
 {
     private readonly PortableAudioEngine _audio;
     private readonly DispatcherTimer _meterTimer;
+    private readonly GlobalControlCoordinator _globalControls = new();
+    private readonly string _presetSettingsPath = IOPath.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "BitsPleaseYT M12",
+        "presets.json");
+    private readonly Dictionary<string, UserPreset> _userPresets = new(StringComparer.OrdinalIgnoreCase);
     private bool _isUiReady;
     private bool _loadingPreset;
     private bool _syncingGlobalControls;
@@ -34,8 +43,11 @@ public partial class MainWindow : Window
             crossover.PropertyChanged += Crossover_PropertyChanged;
         }
         RefreshDevices();
-        PresetBox.SelectedItem = "Broadcast Voice";
-        ApplyPreset("Broadcast Voice");
+        var lastPreset = LoadPresetStore();
+        var initialPreset = PresetNames.Contains(lastPreset) ? lastPreset : "Broadcast Voice";
+        PresetBox.SelectedItem = initialPreset;
+        ApplyPreset(initialPreset);
+        PresetNameBox.Text = _userPresets.ContainsKey(initialPreset) ? initialPreset : string.Empty;
         _isUiReady = true;
         _meterTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         _meterTimer.Tick += (_, _) =>
@@ -376,30 +388,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        foreach (var band in Bands)
-        {
-            switch (parameter)
-            {
-                case "Threshold":
-                    band.Threshold = e.NewValue;
-                    break;
-                case "Ratio":
-                    band.Ratio = e.NewValue;
-                    break;
-                case "Range":
-                    band.Range = e.NewValue;
-                    break;
-                case "MakeupGain":
-                    band.MakeupGain = e.NewValue;
-                    break;
-                case "Attack":
-                    band.Attack = e.NewValue;
-                    break;
-                case "Release":
-                    band.Release = e.NewValue;
-                    break;
-            }
-        }
+        _globalControls.Apply(parameter, e.NewValue / 100.0, Bands);
         DrawGraph();
     }
 
@@ -410,11 +399,22 @@ public partial class MainWindow : Window
             return;
         }
         ApplyPreset(preset);
+        PresetNameBox.Text = _userPresets.ContainsKey(preset) ? preset : string.Empty;
+        SavePresetStore(preset, false);
     }
 
     private void ApplyPreset(string preset)
     {
         _loadingPreset = true;
+        if (_userPresets.TryGetValue(preset, out var userPreset))
+        {
+            ApplyUserPreset(userPreset);
+            SyncGlobalControls();
+            _loadingPreset = false;
+            DrawGraph();
+            return;
+        }
+
         var values = preset switch
         {
             "Smooth Voice" => ExpandPreset([(-20d, 2.5, 6d, 20d, 260d, 0d), (-24d, 3d, 8d, 15d, 220d, -1d), (-22d, 3d, 8d, 12d, 220d, 0d), (-21d, 2.5, 7d, 10d, 200d, 1d), (-18d, 2d, 5d, 8d, 180d, 0d), (-16d, 2d, 4d, 6d, 160d, 1d)]),
@@ -443,13 +443,160 @@ public partial class MainWindow : Window
     private void SyncGlobalControls()
     {
         _syncingGlobalControls = true;
-        GlobalThresholdKnob.Value = Bands.Average(band => band.Threshold);
-        GlobalRatioKnob.Value = Bands.Average(band => band.Ratio);
-        GlobalRangeKnob.Value = Bands.Average(band => band.Range);
-        GlobalGainKnob.Value = Bands.Average(band => band.MakeupGain);
-        GlobalAttackKnob.Value = Bands.Average(band => band.Attack);
-        GlobalReleaseKnob.Value = Bands.Average(band => band.Release);
+        _globalControls.Reset(Bands);
+        GlobalThresholdKnob.Value = 0;
+        GlobalRatioKnob.Value = 0;
+        GlobalRangeKnob.Value = 0;
+        GlobalGainKnob.Value = 0;
+        GlobalAttackKnob.Value = 0;
+        GlobalReleaseKnob.Value = 0;
         _syncingGlobalControls = false;
+    }
+
+    private void ApplyUserPreset(UserPreset preset)
+    {
+        for (var index = 0; index < Crossovers.Count; index++)
+        {
+            Crossovers[index].Frequency = preset.Crossovers[index];
+        }
+        for (var index = 0; index < Bands.Count; index++)
+        {
+            var savedBand = preset.Bands[index];
+            Bands[index].Threshold = savedBand.Threshold;
+            Bands[index].Ratio = savedBand.Ratio;
+            Bands[index].Range = savedBand.Range;
+            Bands[index].Attack = savedBand.Attack;
+            Bands[index].Release = savedBand.Release;
+            Bands[index].MakeupGain = savedBand.MakeupGain;
+            Bands[index].IsSolo = savedBand.IsSolo;
+            Bands[index].IsBypassed = savedBand.IsBypassed;
+        }
+        KneeSlider.Value = preset.Knee;
+        OutputSlider.Value = preset.OutputGain;
+        AutoReleaseSwitch.IsChecked = preset.AutoRelease;
+        foreach (var item in BehaviorBox.Items.OfType<ComboBoxItem>())
+        {
+            if (string.Equals(item.Content?.ToString(), preset.Behavior, StringComparison.Ordinal))
+            {
+                BehaviorBox.SelectedItem = item;
+                break;
+            }
+        }
+    }
+
+    private void SavePreset_Click(object? sender, RoutedEventArgs e)
+    {
+        var name = PresetNameBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            StatusText.Text = "Enter a name before saving the preset.";
+            PresetNameBox.Focus();
+            return;
+        }
+        if (PresetNames.Take(4).Contains(name, StringComparer.OrdinalIgnoreCase))
+        {
+            StatusText.Text = "Built-in preset names cannot be replaced.";
+            return;
+        }
+
+        var behavior = (BehaviorBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Clean";
+        var preset = new UserPreset(
+            name,
+            Crossovers.Select(crossover => crossover.Frequency).ToArray(),
+            Bands.Select(band => new BandPreset(
+                band.Threshold,
+                band.Ratio,
+                band.Range,
+                band.Attack,
+                band.Release,
+                band.MakeupGain,
+                band.IsSolo,
+                band.IsBypassed)).ToArray(),
+            KneeSlider.Value,
+            OutputSlider.Value,
+            AutoReleaseSwitch.IsChecked == true,
+            behavior);
+
+        var isNew = !_userPresets.ContainsKey(name);
+        _userPresets[name] = preset;
+        if (isNew)
+        {
+            PresetNames.Add(name);
+        }
+        _loadingPreset = true;
+        PresetBox.SelectedItem = name;
+        _loadingPreset = false;
+        SavePresetStore(name, true);
+    }
+
+    private void DeletePreset_Click(object? sender, RoutedEventArgs e)
+    {
+        if (PresetBox.SelectedItem is not string name || !_userPresets.Remove(name))
+        {
+            StatusText.Text = "Select a saved user preset to delete.";
+            return;
+        }
+
+        PresetNames.Remove(name);
+        PresetNameBox.Clear();
+        PresetBox.SelectedItem = "Broadcast Voice";
+        SavePresetStore("Broadcast Voice", false);
+        StatusText.Text = $"Preset '{name}' deleted.";
+    }
+
+    private string LoadPresetStore()
+    {
+        try
+        {
+            if (!File.Exists(_presetSettingsPath))
+            {
+                return "Broadcast Voice";
+            }
+            var store = JsonSerializer.Deserialize<PresetStore>(File.ReadAllText(_presetSettingsPath));
+            if (store is null)
+            {
+                return "Broadcast Voice";
+            }
+            foreach (var preset in store.Presets.Where(preset =>
+                         preset.Bands.Length == Bands.Count && preset.Crossovers.Length == Crossovers.Count))
+            {
+                _userPresets[preset.Name] = preset;
+                PresetNames.Add(preset.Name);
+            }
+            return store.LastPreset;
+        }
+        catch (Exception exception)
+        {
+            StatusText.Text = $"Unable to load saved presets: {exception.Message}";
+            return "Broadcast Voice";
+        }
+    }
+
+    private void SavePresetStore(string lastPreset, bool showStatus)
+    {
+        try
+        {
+            Directory.CreateDirectory(IOPath.GetDirectoryName(_presetSettingsPath)!);
+            var store = new PresetStore(lastPreset, _userPresets.Values.OrderBy(preset => preset.Name).ToArray());
+            var temporaryPath = _presetSettingsPath + ".tmp";
+            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(store, new JsonSerializerOptions { WriteIndented = true }));
+            File.Move(temporaryPath, _presetSettingsPath, true);
+            if (showStatus)
+            {
+                StatusText.Text = $"Preset '{lastPreset}' saved.";
+            }
+        }
+        catch (Exception exception)
+        {
+            if (showStatus)
+            {
+                StatusText.Text = $"Unable to save preset: {exception.Message}";
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine(exception);
+            }
+        }
     }
 
     private void BehaviorBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)

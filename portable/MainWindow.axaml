@@ -5,7 +5,7 @@
         x:CompileBindings="False"
         Title="BitsPleaseYT M12 | 12-Band Compressor"
         Icon="/Assets/AppIcon.png"
-        Width="1500" Height="820" MinWidth="1420" MinHeight="780"
+        Width="1500" Height="780" MinWidth="1420" MinHeight="740"
         Background="#101216" Foreground="#E8EAF0">
     <Window.Styles>
         <Style Selector="ComboBox">
@@ -38,12 +38,15 @@
             <Setter Property="Cursor" Value="SizeAll"/>
         </Style>
         <Style Selector="local|RotaryKnob.bandKnob">
-            <Setter Property="MinWidth" Value="58"/>
-            <Setter Property="MinHeight" Value="68"/>
+            <Setter Property="MinWidth" Value="50"/>
+            <Setter Property="MinHeight" Value="54"/>
+        </Style>
+        <Style Selector="local|RotaryKnob.crossoverKnob">
+            <Setter Property="MinHeight" Value="54"/>
         </Style>
     </Window.Styles>
 
-    <Grid Margin="14" RowDefinitions="Auto,220,*,86">
+    <Grid Margin="14" RowDefinitions="Auto,155,*,74">
         <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,Auto,Auto" ColumnSpacing="12">
             <StackPanel Margin="0,0,14,0">
                 <TextBlock Text="BitsPleaseYT M12" FontSize="25" FontWeight="SemiBold"/>
@@ -67,7 +70,7 @@
                     Background="#A8D72E" Foreground="#111318" FontWeight="SemiBold" Padding="18,8"/>
         </Grid>
 
-        <Grid Grid.Row="1" Margin="0,10,0,8" RowDefinitions="*,76">
+        <Grid Grid.Row="1" Margin="0,10,0,8" RowDefinitions="*,56">
             <Border Background="#111317" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5" ClipToBounds="True">
                 <Canvas x:Name="GraphCanvas" SizeChanged="GraphCanvas_SizeChanged"/>
             </Border>
@@ -77,7 +80,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <local:RotaryKnob Minimum="{Binding Minimum}" Maximum="{Binding Maximum}" Step="5"
+                        <local:RotaryKnob Classes="crossoverKnob" Minimum="{Binding Minimum}" Maximum="{Binding Maximum}" Step="5"
                                           Value="{Binding Frequency, Mode=TwoWay}" ValueFormat="0 Hz"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -95,38 +98,38 @@
                         <Grid RowDefinitions="Auto,68" Height="92" Margin="4" VerticalAlignment="Center">
                             <TextBlock Text="THRESH" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
                             <local:RotaryKnob Classes="bandKnob" x:Name="GlobalThresholdKnob" Grid.Row="1" Tag="Threshold"
-                                              Minimum="-60" Maximum="0" Step="0.5" Value="-24" ValueFormat="0.0 dB"
-                                              ValueChanged="GlobalControl_Changed"/>
+                                              Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %"
+                                              ValueChanged="GlobalControl_Changed" ToolTip.Tip="Move all thresholds together while preserving their differences"/>
                         </Grid>
                         <Grid RowDefinitions="Auto,68" Height="92" Margin="4" VerticalAlignment="Center">
                             <TextBlock Text="RATIO" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
                             <local:RotaryKnob Classes="bandKnob" x:Name="GlobalRatioKnob" Grid.Row="1" Tag="Ratio"
-                                              Minimum="1" Maximum="20" Step="0.1" Value="4" ValueFormat="0.0:1"
-                                              ValueChanged="GlobalControl_Changed"/>
+                                              Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %"
+                                              ValueChanged="GlobalControl_Changed" ToolTip.Tip="Move all ratios together while preserving their differences"/>
                         </Grid>
                         <Grid RowDefinitions="Auto,68" Height="92" Margin="4" VerticalAlignment="Center">
                             <TextBlock Text="RANGE" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
                             <local:RotaryKnob Classes="bandKnob" x:Name="GlobalRangeKnob" Grid.Row="1" Tag="Range"
-                                              Minimum="0" Maximum="30" Step="0.5" Value="12" ValueFormat="0.0 dB"
-                                              ValueChanged="GlobalControl_Changed"/>
+                                              Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %"
+                                              ValueChanged="GlobalControl_Changed" ToolTip.Tip="Move all ranges together while preserving their differences"/>
                         </Grid>
                         <Grid RowDefinitions="Auto,68" Height="92" Margin="4" VerticalAlignment="Center">
                             <TextBlock Text="GAIN" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
                             <local:RotaryKnob Classes="bandKnob" x:Name="GlobalGainKnob" Grid.Row="1" Tag="MakeupGain"
-                                              Minimum="-12" Maximum="12" Step="0.5" Value="0" ValueFormat="+0.0;-0.0;0.0 dB"
-                                              ValueChanged="GlobalControl_Changed"/>
+                                              Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %"
+                                              ValueChanged="GlobalControl_Changed" ToolTip.Tip="Move all gains together while preserving their differences"/>
                         </Grid>
                         <Grid RowDefinitions="Auto,68" Height="92" Margin="4" VerticalAlignment="Center">
                             <TextBlock Text="ATTACK" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
                             <local:RotaryKnob Classes="bandKnob" x:Name="GlobalAttackKnob" Grid.Row="1" Tag="Attack"
-                                              Minimum="0.5" Maximum="100" Step="0.5" Value="10" ValueFormat="0.0 ms"
-                                              ValueChanged="GlobalControl_Changed"/>
+                                              Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %"
+                                              ValueChanged="GlobalControl_Changed" ToolTip.Tip="Move all attacks together while preserving their differences"/>
                         </Grid>
                         <Grid RowDefinitions="Auto,68" Height="92" Margin="4" VerticalAlignment="Center">
                             <TextBlock Text="RELEASE" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
                             <local:RotaryKnob Classes="bandKnob" x:Name="GlobalReleaseKnob" Grid.Row="1" Tag="Release"
-                                              Minimum="20" Maximum="1000" Step="5" Value="160" ValueFormat="0 ms"
-                                              ValueChanged="GlobalControl_Changed"/>
+                                              Minimum="-100" Maximum="100" Step="1" Value="0" ValueFormat="+0;-0;0 %"
+                                              ValueChanged="GlobalControl_Changed" ToolTip.Tip="Move all releases together while preserving their differences"/>
                         </Grid>
                     </UniformGrid>
                 </Grid>
@@ -193,11 +196,16 @@
         </Grid>
 
         <Border Grid.Row="3" Background="#1B1E23" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5" Padding="12">
-            <Grid ColumnDefinitions="1.3*,1.1*,1.1*,1.1*,1.1*,2*" ColumnSpacing="16">
+            <Grid ColumnDefinitions="2.2*,1.1*,1.1*,1.1*,1.1*,1.7*" ColumnSpacing="16">
                 <StackPanel>
                     <TextBlock Text="PRESET" FontSize="10" Foreground="#8F96A2"/>
-                    <ComboBox x:Name="PresetBox" ItemsSource="{Binding PresetNames}"
-                              SelectionChanged="PresetBox_SelectionChanged"/>
+                    <Grid ColumnDefinitions="1.25*,*,Auto,Auto" ColumnSpacing="5">
+                        <ComboBox x:Name="PresetBox" ItemsSource="{Binding PresetNames}"
+                                  SelectionChanged="PresetBox_SelectionChanged"/>
+                        <TextBox x:Name="PresetNameBox" Grid.Column="1" PlaceholderText="Preset name"/>
+                        <Button Grid.Column="2" Content="SAVE" Padding="8,4" Click="SavePreset_Click"/>
+                        <Button Grid.Column="3" Content="DELETE" Padding="8,4" Click="DeletePreset_Click"/>
+                    </Grid>
                 </StackPanel>
                 <StackPanel Grid.Column="1">
                     <TextBlock Text="BEHAVIOR" FontSize="10" Foreground="#8F96A2"/>

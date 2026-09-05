@@ -30,6 +30,8 @@
     <AvaloniaResource Include="..\Assets\AppIcon.png" Link="Assets\AppIcon.png" />
     <Compile Include="..\BandSettings.cs" Link="Shared\BandSettings.cs" />
     <Compile Include="..\CrossoverSetting.cs" Link="Shared\CrossoverSetting.cs" />
+    <Compile Include="..\GlobalControlCoordinator.cs" Link="Shared\GlobalControlCoordinator.cs" />
     <Compile Include="..\MultibandProcessor.cs" Link="Shared\MultibandProcessor.cs" />
+    <Compile Include="..\PresetModels.cs" Link="Shared\PresetModels.cs" />
   </ItemGroup>
 </Project>

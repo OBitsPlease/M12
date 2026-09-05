@@ -29,6 +29,7 @@ public partial class MainWindow : Window
         "BitsPleaseYT M12",
         "suite-state.json");
     private readonly Dictionary<string, UserPreset> _userPresets = new(StringComparer.OrdinalIgnoreCase);
+    private readonly GlobalControlCoordinator _globalControls = new();
     private bool _loadingPreset;
     private bool _resettingGlobalControls;
     private bool _isUiReady;
@@ -344,30 +345,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        foreach (var band in Bands)
-        {
-            switch (parameter)
-            {
-                case "Threshold":
-                    band.Threshold = e.NewValue;
-                    break;
-                case "Ratio":
-                    band.Ratio = e.NewValue;
-                    break;
-                case "Range":
-                    band.Range = e.NewValue;
-                    break;
-                case "MakeupGain":
-                    band.MakeupGain = e.NewValue;
-                    break;
-                case "Attack":
-                    band.Attack = e.NewValue;
-                    break;
-                case "Release":
-                    band.Release = e.NewValue;
-                    break;
-            }
-        }
+        _globalControls.Apply(parameter, e.NewValue / 100.0, Bands);
         ResponseGraph.InvalidateVisual();
     }
 
@@ -457,12 +435,13 @@ public partial class MainWindow : Window
     private void SyncGlobalControls()
     {
         _resettingGlobalControls = true;
-        GlobalThresholdKnob.Value = Bands.Average(band => band.Threshold);
-        GlobalRatioKnob.Value = Bands.Average(band => band.Ratio);
-        GlobalRangeKnob.Value = Bands.Average(band => band.Range);
-        GlobalGainKnob.Value = Bands.Average(band => band.MakeupGain);
-        GlobalAttackKnob.Value = Bands.Average(band => band.Attack);
-        GlobalReleaseKnob.Value = Bands.Average(band => band.Release);
+        _globalControls.Reset(Bands);
+        GlobalThresholdKnob.Value = 0;
+        GlobalRatioKnob.Value = 0;
+        GlobalRangeKnob.Value = 0;
+        GlobalGainKnob.Value = 0;
+        GlobalAttackKnob.Value = 0;
+        GlobalReleaseKnob.Value = 0;
         _resettingGlobalControls = false;
     }
 
@@ -635,24 +614,6 @@ public partial class MainWindow : Window
     }
 
     private sealed record RouteSettings(string InputId, string OutputId, bool AutoStart);
-    private sealed record PresetStore(string LastPreset, UserPreset[] Presets);
-    private sealed record UserPreset(
-        string Name,
-        double[] Crossovers,
-        BandPreset[] Bands,
-        double Knee,
-        double OutputGain,
-        bool AutoRelease,
-        string Behavior);
-    private sealed record BandPreset(
-        double Threshold,
-        double Ratio,
-        double Range,
-        double Attack,
-        double Release,
-        double MakeupGain,
-        bool IsSolo,
-        bool IsBypassed);
     private sealed record SuiteState(
         double[] Crossovers,
         SuiteBandState[] Bands,
