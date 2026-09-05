@@ -29,7 +29,6 @@ public partial class MainWindow : Window
         "BitsPleaseYT M12",
         "suite-state.json");
     private readonly Dictionary<string, UserPreset> _userPresets = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, double> _globalControlValues = new(StringComparer.Ordinal);
     private bool _loadingPreset;
     private bool _resettingGlobalControls;
     private bool _isUiReady;
@@ -345,35 +344,27 @@ public partial class MainWindow : Window
             return;
         }
 
-        var previousValue = _globalControlValues.GetValueOrDefault(parameter);
-        var delta = e.NewValue - previousValue;
-        _globalControlValues[parameter] = e.NewValue;
-        if (Math.Abs(delta) < 0.0001)
-        {
-            return;
-        }
-
         foreach (var band in Bands)
         {
             switch (parameter)
             {
                 case "Threshold":
-                    band.Threshold = Math.Clamp(band.Threshold + delta, -60, 0);
+                    band.Threshold = e.NewValue;
                     break;
                 case "Ratio":
-                    band.Ratio = Math.Clamp(band.Ratio + delta, 1, 20);
+                    band.Ratio = e.NewValue;
                     break;
                 case "Range":
-                    band.Range = Math.Clamp(band.Range + delta, 0, 30);
+                    band.Range = e.NewValue;
                     break;
                 case "MakeupGain":
-                    band.MakeupGain = Math.Clamp(band.MakeupGain + delta, -12, 12);
+                    band.MakeupGain = e.NewValue;
                     break;
                 case "Attack":
-                    band.Attack = Math.Clamp(band.Attack + delta, 0.5, 100);
+                    band.Attack = e.NewValue;
                     break;
                 case "Release":
-                    band.Release = Math.Clamp(band.Release + delta, 20, 1000);
+                    band.Release = e.NewValue;
                     break;
             }
         }
@@ -429,10 +420,10 @@ public partial class MainWindow : Window
     private void ApplyPreset(string preset)
     {
         _loadingPreset = true;
-        ResetGlobalControls();
         if (_userPresets.TryGetValue(preset, out var userPreset))
         {
             ApplyUserPreset(userPreset);
+            SyncGlobalControls();
             _loadingPreset = false;
             ResponseGraph?.InvalidateVisual();
             return;
@@ -458,29 +449,20 @@ public partial class MainWindow : Window
             Bands[index].IsSolo = false;
             Bands[index].IsBypassed = false;
         }
+        SyncGlobalControls();
         _loadingPreset = false;
         ResponseGraph?.InvalidateVisual();
     }
 
-    private void ResetGlobalControls()
+    private void SyncGlobalControls()
     {
         _resettingGlobalControls = true;
-        foreach (var knob in new[]
-                 {
-                     GlobalThresholdKnob,
-                     GlobalRatioKnob,
-                     GlobalRangeKnob,
-                     GlobalGainKnob,
-                     GlobalAttackKnob,
-                     GlobalReleaseKnob
-                 })
-        {
-            knob.Value = 0;
-            if (knob.Tag is string parameter)
-            {
-                _globalControlValues[parameter] = 0;
-            }
-        }
+        GlobalThresholdKnob.Value = Bands.Average(band => band.Threshold);
+        GlobalRatioKnob.Value = Bands.Average(band => band.Ratio);
+        GlobalRangeKnob.Value = Bands.Average(band => band.Range);
+        GlobalGainKnob.Value = Bands.Average(band => band.MakeupGain);
+        GlobalAttackKnob.Value = Bands.Average(band => band.Attack);
+        GlobalReleaseKnob.Value = Bands.Average(band => band.Release);
         _resettingGlobalControls = false;
     }
 

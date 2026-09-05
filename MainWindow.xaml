@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:MultibandCore"
         Title="BitsPleaseYT M12 | 12-Band Compressor"
-        Width="1500" Height="960" MinWidth="1420" MinHeight="900"
+        Width="1500" Height="820" MinWidth="1420" MinHeight="780"
         Background="#101216" Foreground="#E8EAF0" FontFamily="Bahnschrift"
         WindowStartupLocation="CenterScreen" Closing="Window_Closing">
     <Window.Resources>
@@ -239,7 +239,7 @@
 
         <Grid Grid.Row="2" Margin="0,8,0,8">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="118"/>
+                <ColumnDefinition Width="220"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Border Background="#181B20" BorderBrush="#4B515B" BorderThickness="1" CornerRadius="5" Margin="3,0" Padding="7,8">
@@ -252,36 +252,36 @@
                         <TextBlock Text="GLOBAL" FontSize="15" FontWeight="SemiBold" Foreground="#74E062" HorizontalAlignment="Center"/>
                         <TextBlock Text="ALL BANDS" Foreground="#9299A5" FontSize="9" HorizontalAlignment="Center"/>
                     </StackPanel>
-                    <UniformGrid Grid.Row="1" Rows="6">
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <UniformGrid Grid.Row="1" Rows="3" Columns="2">
+                        <Grid Margin="4">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="THRESH" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalThresholdKnob" Grid.Column="1" Tag="Threshold" Minimum="-30" Maximum="30" Step="0.5" Value="0" ValueFormat="+0.0;-0.0;0.0 dB" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Global threshold trim for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalThresholdKnob" Grid.Row="1" Tag="Threshold" Minimum="-60" Maximum="0" Step="0.5" Value="-24" ValueFormat="0.0 dB" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set threshold for all bands"/>
                         </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Grid Margin="4">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="RATIO" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalRatioKnob" Grid.Column="1" Tag="Ratio" Minimum="-9.5" Maximum="9.5" Step="0.1" Value="0" ValueFormat="+0.0;-0.0;0.0" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Global ratio trim for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalRatioKnob" Grid.Row="1" Tag="Ratio" Minimum="1" Maximum="20" Step="0.1" Value="4" ValueFormat="0.0:1" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set ratio for all bands"/>
                         </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Grid Margin="4">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="RANGE" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalRangeKnob" Grid.Column="1" Tag="Range" Minimum="-15" Maximum="15" Step="0.5" Value="0" ValueFormat="+0.0;-0.0;0.0 dB" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Global range trim for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalRangeKnob" Grid.Row="1" Tag="Range" Minimum="0" Maximum="30" Step="0.5" Value="12" ValueFormat="0.0 dB" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set range for all bands"/>
                         </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Grid Margin="4">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="GAIN" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalGainKnob" Grid.Column="1" Tag="MakeupGain" Minimum="-12" Maximum="12" Step="0.5" Value="0" ValueFormat="+0.0;-0.0;0.0 dB" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Global makeup gain trim for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalGainKnob" Grid.Row="1" Tag="MakeupGain" Minimum="-12" Maximum="12" Step="0.5" Value="0" ValueFormat="+0.0;-0.0;0.0 dB" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set makeup gain for all bands"/>
                         </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Grid Margin="4">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="ATTACK" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalAttackKnob" Grid.Column="1" Tag="Attack" Minimum="-49.75" Maximum="49.75" Step="0.5" Value="0" ValueFormat="+0.0;-0.0;0.0 ms" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Global attack trim for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalAttackKnob" Grid.Row="1" Tag="Attack" Minimum="0.5" Maximum="100" Step="0.5" Value="10" ValueFormat="0.0 ms" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set attack for all bands"/>
                         </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Grid Margin="4">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <TextBlock Text="RELEASE" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalReleaseKnob" Grid.Column="1" Tag="Release" Minimum="-490" Maximum="490" Step="5" Value="0" ValueFormat="+0;-0;0 ms" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Global release trim for all bands"/>
+                            <local:RotaryKnob x:Name="GlobalReleaseKnob" Grid.Row="1" Tag="Release" Minimum="20" Maximum="1000" Step="5" Value="160" ValueFormat="0 ms" Foreground="#DDE1E7" Cursor="SizeAll" ValueChanged="GlobalControl_Changed" ToolTip="Set release for all bands"/>
                         </Grid>
                     </UniformGrid>
                 </Grid>

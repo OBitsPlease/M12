@@ -17,9 +17,9 @@ public partial class MainWindow : Window
 {
     private readonly PortableAudioEngine _audio;
     private readonly DispatcherTimer _meterTimer;
-    private readonly Dictionary<string, double> _globalControlValues = new(StringComparer.Ordinal);
     private bool _isUiReady;
     private bool _loadingPreset;
+    private bool _syncingGlobalControls;
     private int _meterTicks;
 
     public MainWindow()
@@ -371,10 +371,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var previousValue = _globalControlValues.GetValueOrDefault(parameter);
-        var delta = e.NewValue - previousValue;
-        _globalControlValues[parameter] = e.NewValue;
-        if (Math.Abs(delta) < 0.0001)
+        if (_syncingGlobalControls)
         {
             return;
         }
@@ -384,22 +381,22 @@ public partial class MainWindow : Window
             switch (parameter)
             {
                 case "Threshold":
-                    band.Threshold = Math.Clamp(band.Threshold + delta, -60, 0);
+                    band.Threshold = e.NewValue;
                     break;
                 case "Ratio":
-                    band.Ratio = Math.Clamp(band.Ratio + delta, 1, 20);
+                    band.Ratio = e.NewValue;
                     break;
                 case "Range":
-                    band.Range = Math.Clamp(band.Range + delta, 0, 30);
+                    band.Range = e.NewValue;
                     break;
                 case "MakeupGain":
-                    band.MakeupGain = Math.Clamp(band.MakeupGain + delta, -12, 12);
+                    band.MakeupGain = e.NewValue;
                     break;
                 case "Attack":
-                    band.Attack = Math.Clamp(band.Attack + delta, 0.5, 100);
+                    band.Attack = e.NewValue;
                     break;
                 case "Release":
-                    band.Release = Math.Clamp(band.Release + delta, 20, 1000);
+                    band.Release = e.NewValue;
                     break;
             }
         }
@@ -418,7 +415,6 @@ public partial class MainWindow : Window
     private void ApplyPreset(string preset)
     {
         _loadingPreset = true;
-        ResetGlobalControls();
         var values = preset switch
         {
             "Smooth Voice" => ExpandPreset([(-20d, 2.5, 6d, 20d, 260d, 0d), (-24d, 3d, 8d, 15d, 220d, -1d), (-22d, 3d, 8d, 12d, 220d, 0d), (-21d, 2.5, 7d, 10d, 200d, 1d), (-18d, 2d, 5d, 8d, 180d, 0d), (-16d, 2d, 4d, 6d, 160d, 1d)]),
@@ -439,28 +435,21 @@ public partial class MainWindow : Window
             Bands[index].IsSolo = false;
             Bands[index].IsBypassed = false;
         }
+        SyncGlobalControls();
         _loadingPreset = false;
         DrawGraph();
     }
 
-    private void ResetGlobalControls()
+    private void SyncGlobalControls()
     {
-        foreach (var knob in new[]
-                 {
-                     GlobalThresholdKnob,
-                     GlobalRatioKnob,
-                     GlobalRangeKnob,
-                     GlobalGainKnob,
-                     GlobalAttackKnob,
-                     GlobalReleaseKnob
-                 })
-        {
-            knob.Value = 0;
-            if (knob.Tag is string parameter)
-            {
-                _globalControlValues[parameter] = 0;
-            }
-        }
+        _syncingGlobalControls = true;
+        GlobalThresholdKnob.Value = Bands.Average(band => band.Threshold);
+        GlobalRatioKnob.Value = Bands.Average(band => band.Ratio);
+        GlobalRangeKnob.Value = Bands.Average(band => band.Range);
+        GlobalGainKnob.Value = Bands.Average(band => band.MakeupGain);
+        GlobalAttackKnob.Value = Bands.Average(band => band.Attack);
+        GlobalReleaseKnob.Value = Bands.Average(band => band.Release);
+        _syncingGlobalControls = false;
     }
 
     private void BehaviorBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
