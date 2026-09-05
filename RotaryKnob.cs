@@ -53,8 +53,9 @@ public sealed class RotaryKnob : RangeBase
 
         var position = e.GetPosition(this);
         var movement = (_dragOrigin.Y - position.Y) + (position.X - _dragOrigin.X);
-        var steps = Math.Round(movement / 3.0);
-        Value = Math.Clamp(_dragValue + steps * Step, Minimum, Maximum);
+        var rawValue = _dragValue + movement / 160.0 * (Maximum - Minimum);
+        var snappedValue = Math.Round(rawValue / Step) * Step;
+        Value = Math.Clamp(snappedValue, Minimum, Maximum);
         e.Handled = true;
     }
 

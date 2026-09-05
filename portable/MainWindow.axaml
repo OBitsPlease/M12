@@ -5,7 +5,7 @@
         x:CompileBindings="False"
         Title="BitsPleaseYT M12 | 12-Band Compressor"
         Icon="/Assets/AppIcon.png"
-        Width="1500" Height="960" MinWidth="1280" MinHeight="820"
+        Width="1500" Height="960" MinWidth="1420" MinHeight="900"
         Background="#101216" Foreground="#E8EAF0">
     <Window.Styles>
         <Style Selector="ComboBox">
@@ -32,8 +32,8 @@
             <Setter Property="Foreground" Value="#16171B"/>
         </Style>
         <Style Selector="local|RotaryKnob">
-            <Setter Property="MinWidth" Value="44"/>
-            <Setter Property="MinHeight" Value="54"/>
+            <Setter Property="MinWidth" Value="54"/>
+            <Setter Property="MinHeight" Value="68"/>
             <Setter Property="Foreground" Value="#DDE1E7"/>
             <Setter Property="Cursor" Value="SizeAll"/>
         </Style>
@@ -112,7 +112,7 @@
                         <Grid ColumnDefinitions="42,*">
                             <TextBlock Text="ATTACK" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
                             <local:RotaryKnob x:Name="GlobalAttackKnob" Grid.Column="1" Tag="Attack"
-                                              Minimum="-49.5" Maximum="49.5" Step="0.5" ValueFormat="+0.0;-0.0;0.0 ms"
+                                              Minimum="-49.75" Maximum="49.75" Step="0.5" ValueFormat="+0.0;-0.0;0.0 ms"
                                               ValueChanged="GlobalControl_Changed"/>
                         </Grid>
                         <Grid ColumnDefinitions="42,*">
@@ -131,7 +131,8 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="#202329" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5" Margin="3,0" Padding="10,8">
+                        <Border Background="#202329" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5"
+                                Margin="4" Padding="10,8" MinWidth="205" MinHeight="260">
                             <Grid RowDefinitions="Auto,Auto,*">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel>

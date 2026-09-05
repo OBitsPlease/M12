@@ -7,6 +7,7 @@ namespace MultibandCore;
 public sealed class AudioEngine : IDisposable
 {
     private readonly BandSettings[] _settings;
+    private readonly object _playbackLock = new();
     private WasapiCapture? _capture;
     private WasapiOut? _playback;
     private BufferedWaveProvider? _outputBuffer;
@@ -17,6 +18,9 @@ public sealed class AudioEngine : IDisposable
     private WaveFormat? _captureFormat;
     private double[]? _pendingCrossovers;
     private byte[] _processingBuffer = [];
+    private int _targetBufferedBytes;
+    private int _driftToleranceBytes;
+    private volatile bool _playbackStarted;
 
     public AudioEngine(BandSettings[] settings) => _settings = settings;
 
@@ -76,10 +80,12 @@ public sealed class AudioEngine : IDisposable
             .ToArray();
         _outputBuffer = new BufferedWaveProvider(_captureFormat)
         {
-            BufferDuration = TimeSpan.FromMilliseconds(Math.Max(12, ConfiguredLatencyMilliseconds * 4)),
+            BufferDuration = TimeSpan.FromSeconds(1),
             DiscardOnBufferOverflow = true,
             ReadFully = true
         };
+        _targetBufferedBytes = _captureFormat.AverageBytesPerSecond * Math.Max(60, ConfiguredLatencyMilliseconds * 4) / 1000;
+        _driftToleranceBytes = _captureFormat.AverageBytesPerSecond / 100;
         _playback = new WasapiOut(_outputEndpoint, AudioClientShareMode.Shared, true, ConfiguredLatencyMilliseconds);
         var outputFormat = _outputEndpoint.AudioClient.MixFormat;
         if (FormatsMatch(_captureFormat, outputFormat))
@@ -94,7 +100,6 @@ public sealed class AudioEngine : IDisposable
 
         _capture.DataAvailable += OnDataAvailable;
         _capture.RecordingStopped += OnRecordingStopped;
-        _playback.Play();
         _capture.StartRecording();
     }
 
@@ -104,7 +109,7 @@ public sealed class AudioEngine : IDisposable
             input.AudioClient.MinimumDevicePeriod,
             output.AudioClient.MinimumDevicePeriod);
         var minimumMilliseconds = minimumPeriodTicks / (double)TimeSpan.TicksPerMillisecond;
-        return Math.Clamp((int)Math.Ceiling(minimumMilliseconds + 2.5), 6, 10);
+        return Math.Clamp((int)Math.Ceiling(minimumMilliseconds + 10), 15, 25);
     }
 
     public void SetMasterControls(double knee, double outputGain, bool autoRelease)
@@ -131,12 +136,18 @@ public sealed class AudioEngine : IDisposable
             capture.StopRecording();
             capture.Dispose();
         }
-        _playback?.Stop();
-        _playback?.Dispose();
-        _playback = null;
+        lock (_playbackLock)
+        {
+            _playback?.Stop();
+            _playback?.Dispose();
+            _playback = null;
+            _playbackStarted = false;
+        }
         _resampler?.Dispose();
         _resampler = null;
         _outputBuffer = null;
+        _targetBufferedBytes = 0;
+        _driftToleranceBytes = 0;
         _processors = [];
         _captureFormat = null;
         _processingBuffer = [];
@@ -169,6 +180,10 @@ public sealed class AudioEngine : IDisposable
                 processor.UpdateCrossovers(crossoverUpdate);
             }
         }
+        foreach (var processor in _processors)
+        {
+            processor.PrepareBlock();
+        }
 
         if (_processingBuffer.Length < eventArgs.BytesRecorded)
         {
@@ -186,7 +201,34 @@ public sealed class AudioEngine : IDisposable
             var processed = _processors[channel].Process(inputSample);
             WriteSample(output.AsSpan(offset, bytesPerSample), processed, bytesPerSample, isFloat);
         }
-        outputBuffer.AddSamples(output, 0, output.Length);
+        var frameBytes = bytesPerSample * format.Channels;
+        var bufferOffset = 0;
+        var count = eventArgs.BytesRecorded;
+        if (_playbackStarted &&
+            eventArgs.BytesRecorded >= frameBytes &&
+            outputBuffer.BufferedBytes > _targetBufferedBytes + _driftToleranceBytes)
+        {
+            bufferOffset = frameBytes;
+            count -= frameBytes;
+        }
+        outputBuffer.AddSamples(output, bufferOffset, count);
+        if (!_playbackStarted && outputBuffer.BufferedBytes >= _targetBufferedBytes)
+        {
+            lock (_playbackLock)
+            {
+                if (_playback is not null && !_playbackStarted)
+                {
+                    _playback.Play();
+                    _playbackStarted = true;
+                }
+            }
+        }
+        else if (_playbackStarted &&
+                 eventArgs.BytesRecorded >= frameBytes &&
+                 outputBuffer.BufferedBytes < _targetBufferedBytes - _driftToleranceBytes)
+        {
+            outputBuffer.AddSamples(output, eventArgs.BytesRecorded - frameBytes, frameBytes);
+        }
     }
 
     private void OnRecordingStopped(object? sender, StoppedEventArgs eventArgs)

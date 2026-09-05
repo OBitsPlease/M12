@@ -10,7 +10,18 @@ public sealed class MultibandProcessor
     private readonly double[] _meterLevels;
     private readonly double[] _meterReduction;
     private readonly float[] _bandSamples;
+    private readonly double[] _thresholds;
+    private readonly double[] _ratioSlopes;
+    private readonly double[] _ranges;
+    private readonly double[] _attackCoefficients;
+    private readonly double[] _releaseCoefficients;
+    private readonly double[] _makeupGains;
+    private readonly bool[] _isSolo;
+    private readonly bool[] _isBypassed;
     private readonly int _sampleRate;
+    private bool _anySolo;
+    private double _blockKnee;
+    private double _blockOutputGain = 1;
 
     public MultibandProcessor(int sampleRate, BandSettings[] settings, double[] crossoverFrequencies)
     {
@@ -25,7 +36,16 @@ public sealed class MultibandProcessor
         _meterLevels = new double[settings.Length];
         _meterReduction = new double[settings.Length];
         _bandSamples = new float[settings.Length];
+        _thresholds = new double[settings.Length];
+        _ratioSlopes = new double[settings.Length];
+        _ranges = new double[settings.Length];
+        _attackCoefficients = new double[settings.Length];
+        _releaseCoefficients = new double[settings.Length];
+        _makeupGains = new double[settings.Length];
+        _isSolo = new bool[settings.Length];
+        _isBypassed = new bool[settings.Length];
         _crossovers = crossoverFrequencies.Select(frequency => new Crossover(sampleRate, frequency)).ToArray();
+        PrepareBlock();
     }
 
     public bool AutoRelease { get; set; } = true;
@@ -42,6 +62,29 @@ public sealed class MultibandProcessor
         }
     }
 
+    public void PrepareBlock()
+    {
+        _anySolo = false;
+        _blockKnee = Math.Max(0, Knee);
+        _blockOutputGain = DbToLinear(OutputGain);
+        for (var index = 0; index < _settings.Length; index++)
+        {
+            var setting = _settings[index];
+            _thresholds[index] = setting.Threshold;
+            _ratioSlopes[index] = 1.0 - 1.0 / Math.Max(1.0, setting.Ratio);
+            _ranges[index] = setting.Range;
+            _attackCoefficients[index] = TimeCoefficient(setting.Attack);
+            var releaseMs = AutoRelease
+                ? setting.Release * (1.0 + Math.Clamp(_envelopes[index] * 2.0, 0.0, 2.0))
+                : setting.Release;
+            _releaseCoefficients[index] = TimeCoefficient(releaseMs);
+            _makeupGains[index] = setting.MakeupGain;
+            _isSolo[index] = setting.IsSolo;
+            _isBypassed[index] = setting.IsBypassed;
+            _anySolo |= setting.IsSolo;
+        }
+    }
+
     public float Process(float input)
     {
         var previousLow = _crossovers[0].LowPass(input);
@@ -54,36 +97,31 @@ public sealed class MultibandProcessor
         }
         _bandSamples[^1] = input - previousLow;
 
-        var anySolo = _settings.Any(setting => setting.IsSolo);
         var output = 0.0;
 
         for (var index = 0; index < _settings.Length; index++)
         {
-            var setting = _settings[index];
             var sample = _bandSamples[index];
             var detector = Math.Abs(sample);
-            var attackCoefficient = TimeCoefficient(setting.Attack);
-            var releaseMs = AutoRelease
-                ? setting.Release * (1.0 + Math.Clamp(_envelopes[index] * 2.0, 0.0, 2.0))
-                : setting.Release;
-            var releaseCoefficient = TimeCoefficient(releaseMs);
-            var coefficient = detector > _envelopes[index] ? attackCoefficient : releaseCoefficient;
+            var coefficient = detector > _envelopes[index]
+                ? _attackCoefficients[index]
+                : _releaseCoefficients[index];
             _envelopes[index] = coefficient * _envelopes[index] + (1.0 - coefficient) * detector;
 
             var levelDb = LinearToDb(_envelopes[index]);
-            var reductionDb = setting.IsBypassed ? 0.0 : CalculateReduction(levelDb, setting);
-            var gain = DbToLinear(setting.MakeupGain - reductionDb);
+            var reductionDb = _isBypassed[index] ? 0.0 : CalculateReduction(levelDb, index);
+            var gain = DbToLinear(_makeupGains[index] - reductionDb);
 
             _meterLevels[index] = SmoothMeter(_meterLevels[index], levelDb);
             _meterReduction[index] = SmoothMeter(_meterReduction[index], reductionDb);
 
-            if (!anySolo || setting.IsSolo)
+            if (!_anySolo || _isSolo[index])
             {
-                output += setting.IsBypassed ? sample : sample * gain;
+                output += _isBypassed[index] ? sample : sample * gain;
             }
         }
 
-        output *= DbToLinear(OutputGain);
+        output *= _blockOutputGain;
         output = Math.Clamp(output, -0.98, 0.98);
         InputLevel = SmoothMeter(InputLevel, LinearToDb(Math.Abs(input)));
         OutputLevel = SmoothMeter(OutputLevel, LinearToDb(Math.Abs(output)));
@@ -93,24 +131,22 @@ public sealed class MultibandProcessor
     public (double Level, double Reduction) GetMeter(int bandIndex) =>
         (_meterLevels[bandIndex], _meterReduction[bandIndex]);
 
-    private double CalculateReduction(double levelDb, BandSettings setting)
+    private double CalculateReduction(double levelDb, int bandIndex)
     {
-        var over = levelDb - setting.Threshold;
-        var knee = Math.Max(0.0, Knee);
+        var over = levelDb - _thresholds[bandIndex];
         double compressedOver;
 
-        if (knee > 0 && over > -knee / 2.0 && over < knee / 2.0)
+        if (_blockKnee > 0 && over > -_blockKnee / 2.0 && over < _blockKnee / 2.0)
         {
-            var kneePosition = over + knee / 2.0;
-            compressedOver = kneePosition * kneePosition / (2.0 * knee);
+            var kneePosition = over + _blockKnee / 2.0;
+            compressedOver = kneePosition * kneePosition / (2.0 * _blockKnee);
         }
         else
         {
             compressedOver = Math.Max(0.0, over);
         }
 
-        var reduction = compressedOver * (1.0 - 1.0 / Math.Max(1.0, setting.Ratio));
-        return Math.Clamp(reduction, 0.0, setting.Range);
+        return Math.Clamp(compressedOver * _ratioSlopes[bandIndex], 0.0, _ranges[bandIndex]);
     }
 
     private double TimeCoefficient(double milliseconds) =>

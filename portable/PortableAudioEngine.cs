@@ -9,6 +9,7 @@ public sealed class PortableAudioEngine : IDisposable
     private readonly BandSettings[] _settings;
     private PortAudioStream? _stream;
     private MultibandProcessor[] _processors = [];
+    private double[]? _pendingCrossovers;
     private bool _initialized;
 
     public PortableAudioEngine(BandSettings[] settings)
@@ -30,8 +31,15 @@ public sealed class PortableAudioEngine : IDisposable
             return (-60, 0);
         }
 
-        var meters = _processors.Select(processor => processor.GetMeter(bandIndex)).ToArray();
-        return (meters.Max(meter => meter.Level), meters.Max(meter => meter.Reduction));
+        var level = -60.0;
+        var reduction = 0.0;
+        foreach (var processor in _processors)
+        {
+            var meter = processor.GetMeter(bandIndex);
+            level = Math.Max(level, meter.Level);
+            reduction = Math.Max(reduction, meter.Reduction);
+        }
+        return (level, reduction);
     }
 
     public static IReadOnlyList<PortableDevice> GetInputDevices() => GetDevices(true);
@@ -78,7 +86,7 @@ public sealed class PortableAudioEngine : IDisposable
             hostApiSpecificStreamInfo = IntPtr.Zero
         };
 
-        _stream = new PortAudioStream(inputParameters, outputParameters, sampleRate, 0,
+        _stream = new PortAudioStream(inputParameters, outputParameters, sampleRate, 512,
             StreamFlags.ClipOff, ProcessAudio, new StreamState(inputChannels, outputChannels));
         _stream.Start();
     }
@@ -101,13 +109,8 @@ public sealed class PortableAudioEngine : IDisposable
         }
     }
 
-    public void UpdateCrossovers(double[] crossoverFrequencies)
-    {
-        foreach (var processor in _processors)
-        {
-            processor.UpdateCrossovers(crossoverFrequencies);
-        }
-    }
+    public void UpdateCrossovers(double[] crossoverFrequencies) =>
+        Interlocked.Exchange(ref _pendingCrossovers, crossoverFrequencies.ToArray());
 
     public void Dispose()
     {
@@ -130,6 +133,16 @@ public sealed class PortableAudioEngine : IDisposable
         {
             new Span<float>(outputSamples, checked((int)frameCount * state.OutputChannels)).Clear();
             return StreamCallbackResult.Continue;
+        }
+
+        var crossoverUpdate = Interlocked.Exchange(ref _pendingCrossovers, null);
+        foreach (var processor in _processors)
+        {
+            if (crossoverUpdate is not null)
+            {
+                processor.UpdateCrossovers(crossoverUpdate);
+            }
+            processor.PrepareBlock();
         }
 
         for (var frame = 0; frame < frameCount; frame++)

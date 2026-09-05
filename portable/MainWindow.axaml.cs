@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     private readonly Dictionary<string, double> _globalControlValues = new(StringComparer.Ordinal);
     private bool _isUiReady;
     private bool _loadingPreset;
+    private int _meterTicks;
 
     public MainWindow()
     {
@@ -47,7 +48,10 @@ public partial class MainWindow : Window
                 Bands[index].GainReduction = meter.Reduction;
             }
             _audio.SetMasterControls(KneeSlider.Value, OutputSlider.Value, AutoReleaseSwitch.IsChecked == true);
-            DrawGraph();
+            if (++_meterTicks % 4 == 0)
+            {
+                DrawGraph();
+            }
         };
         _meterTimer.Start();
         Closing += (_, _) =>
@@ -114,7 +118,7 @@ public partial class MainWindow : Window
                     },
                     new TextBlock
                     {
-                        Text = "macOS does not expose YouTube, Discord, or other app playback as a normal audio input. Install a virtual CoreAudio device such as BlackHole, route the app or a Multi-Output Device into it, then select that virtual device as M12's SOURCE.",
+                        Text = "macOS does not expose YouTube, Discord, or other app playback as a normal audio input. Install a virtual CoreAudio device such as BlackHole, route the app or a Multi-Output Device into it, then select that virtual device as M12's SOURCE. In Audio MIDI Setup, enable Drift Correction for the secondary device when combining devices; unsynchronized device clocks cause crackling and dropouts over time.",
                         TextWrapping = TextWrapping.Wrap
                     },
                     new TextBlock

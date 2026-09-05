@@ -31,8 +31,8 @@ public sealed class RotaryKnob : RangeBase
     }
 
     protected override Size MeasureOverride(Size availableSize) =>
-        new(double.IsInfinity(availableSize.Width) ? 62 : Math.Min(62, availableSize.Width),
-            double.IsInfinity(availableSize.Height) ? 58 : Math.Min(58, availableSize.Height));
+        new(double.IsInfinity(availableSize.Width) ? 72 : Math.Min(72, availableSize.Width),
+            double.IsInfinity(availableSize.Height) ? 70 : Math.Min(70, availableSize.Height));
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
@@ -59,8 +59,9 @@ public sealed class RotaryKnob : RangeBase
 
         var position = e.GetPosition(this);
         var movement = (_dragOrigin.Y - position.Y) + (position.X - _dragOrigin.X);
-        var steps = Math.Round(movement / 3.0);
-        Value = Math.Clamp(_dragValue + steps * Step, Minimum, Maximum);
+        var rawValue = _dragValue + movement / 160.0 * (Maximum - Minimum);
+        var snappedValue = Math.Round(rawValue / Step) * Step;
+        Value = Math.Clamp(snappedValue, Minimum, Maximum);
         e.Handled = true;
     }
 

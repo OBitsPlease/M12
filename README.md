@@ -16,6 +16,9 @@ macOS does not expose audio playing in Discord, a browser, or another app as a
 normal input device. To process that audio, install a virtual CoreAudio device
 such as [BlackHole](https://github.com/ExistentialAudio/BlackHole), route the
 source app or a macOS Multi-Output Device to it, and select it as M12's source.
+When combining BlackHole with a physical interface or built-in output in Audio
+MIDI Setup, enable **Drift Correction** for the secondary device. Independent
+device clocks can otherwise separate over time and cause crackling or dropouts.
 
 To send a processed microphone into Discord, select the microphone or external
 audio interface as M12's source, select a virtual device as M12's processed

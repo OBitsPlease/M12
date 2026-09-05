@@ -21,6 +21,9 @@ AUDIO ROUTING
 macOS does not expose audio from YouTube, Discord, or other applications as a
 normal input. Install a virtual CoreAudio device such as BlackHole, route the
 application audio into it, and select that device as M12's SOURCE.
+If Audio MIDI Setup combines BlackHole with a physical or built-in device,
+enable Drift Correction for the secondary device. Separate device clocks can
+otherwise cause crackling and dropouts after the audio runs for a while.
 
 To send processed microphone audio into Discord, select your microphone or
 external sound card as SOURCE, select a virtual device as PROCESSED OUTPUT, and
