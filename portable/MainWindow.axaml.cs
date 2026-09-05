@@ -195,6 +195,22 @@ public partial class MainWindow : Window
         var width = GraphCanvas.Bounds.Width;
         var height = GraphCanvas.Bounds.Height;
         GraphCanvas.Children.Clear();
+        for (var index = 0; index < Bands.Count; index++)
+        {
+            var leftFrequency = index == 0 ? 20.0 : Crossovers[index - 1].Frequency;
+            var rightFrequency = index == Bands.Count - 1 ? 20000.0 : Crossovers[index].Frequency;
+            var left = Math.Log10(leftFrequency / 20.0) / 3.0 * width;
+            var right = Math.Log10(rightFrequency / 20.0) / 3.0 * width;
+            var bandColor = Color.Parse(Bands[index].Color);
+            var zone = new Rectangle
+            {
+                Width = Math.Max(0, right - left),
+                Height = height,
+                Fill = new SolidColorBrush(Color.FromArgb(18, bandColor.R, bandColor.G, bandColor.B))
+            };
+            Canvas.SetLeft(zone, left);
+            GraphCanvas.Children.Add(zone);
+        }
         for (var index = 0; index <= 6; index++)
         {
             var y = index * height / 6;
@@ -206,7 +222,7 @@ public partial class MainWindow : Window
             GraphCanvas.Children.Add(new Line { StartPoint = new Point(x, 0), EndPoint = new Point(x, height), Stroke = new SolidColorBrush(Color.Parse("#4B515C")), StrokeThickness = 1 });
         }
 
-        var response = new Polyline { Stroke = new SolidColorBrush(Color.Parse("#F25FCA")), StrokeThickness = 2.5 };
+        var responsePoints = new List<Point>();
         for (var pixel = 0; pixel <= width; pixel += 3)
         {
             var frequency = 20 * Math.Pow(1000, pixel / width);
@@ -222,9 +238,40 @@ public partial class MainWindow : Window
                 gain += (Bands[index].MakeupGain - Bands[index].GainReduction) * weight;
                 totalWeight += weight;
             }
-            response.Points.Add(new Point(pixel, height / 2 - gain / Math.Max(0.001, totalWeight) / 36 * height));
+            responsePoints.Add(new Point(pixel, height / 2 - gain / Math.Max(0.001, totalWeight) / 36 * height));
         }
+        var reductionFill = new Polygon
+        {
+            Fill = new SolidColorBrush(Color.FromArgb(55, 220, 52, 185)),
+            Points = new Points([new Point(0, height / 2), .. responsePoints, new Point(width, height / 2)])
+        };
+        GraphCanvas.Children.Add(reductionFill);
+        var response = new Polyline
+        {
+            Stroke = new SolidColorBrush(Color.Parse("#F25FCA")),
+            StrokeThickness = 2.5,
+            Points = new Points(responsePoints)
+        };
         GraphCanvas.Children.Add(response);
+        for (var index = 0; index < Bands.Count; index++)
+        {
+            var lower = index == 0 ? 20.0 : Crossovers[index - 1].Frequency;
+            var upper = index == Bands.Count - 1 ? 20000.0 : Crossovers[index].Frequency;
+            var centerFrequency = Math.Sqrt(lower * upper);
+            var x = Math.Log10(centerFrequency / 20.0) / 3.0 * width;
+            var y = height / 2 - (Bands[index].MakeupGain - Bands[index].GainReduction) / 36 * height;
+            var marker = new Ellipse
+            {
+                Width = 10,
+                Height = 10,
+                Fill = new SolidColorBrush(Color.Parse(Bands[index].Color)),
+                Stroke = Brushes.White,
+                StrokeThickness = 1
+            };
+            Canvas.SetLeft(marker, x - 5);
+            Canvas.SetTop(marker, y - 5);
+            GraphCanvas.Children.Add(marker);
+        }
     }
 
     private void StartButton_Click(object? sender, RoutedEventArgs e)
