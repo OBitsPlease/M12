@@ -297,23 +297,21 @@
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Grid>
-                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="{Binding Color}"/>
-                                    <TextBlock Text="{Binding FrequencyLabel}" Foreground="#9299A5" FontSize="10"/>
-                                </StackPanel>
-                                <ProgressBar Grid.Column="1" Width="6" Height="43" Orientation="Vertical" Maximum="30" Value="{Binding GainReduction}" Foreground="{Binding Color}"/>
-                            </Grid>
-                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,5">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="{Binding Color}"/>
+                                <TextBlock Text="{Binding FrequencyLabel}" Foreground="#9299A5" FontSize="10"/>
+                            </StackPanel>
+                            <ProgressBar Grid.Row="1" Height="6" Minimum="0" Maximum="30" Value="{Binding GainReduction}" Foreground="{Binding Color}"/>
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,5">
                                 <ToggleButton Content="S" IsChecked="{Binding IsSolo}" Width="32" Margin="0,0,5,0" ToolTip="Solo this band"/>
                                 <ToggleButton Content="BYP" IsChecked="{Binding IsBypassed}" Width="46" ToolTip="Bypass compression for this band"/>
                                 <TextBlock Text="{Binding GainReduction, StringFormat={}{0:F1} dB GR}" Foreground="#AEB4BE" FontSize="10" Margin="8,0,0,0"/>
                             </StackPanel>
-                            <UniformGrid Grid.Row="2" Rows="2" Columns="3">
+                            <UniformGrid Grid.Row="3" Rows="2" Columns="3">
                                 <Grid>
                                     <TextBlock Text="THRESH" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center" VerticalAlignment="Top"/>
                                     <local:RotaryKnob Minimum="-60" Maximum="0" Step="0.5" Value="{Binding Threshold, Mode=TwoWay}" ValueFormat="0.0 dB" Foreground="#DDE1E7" Cursor="SizeAll" Margin="0,8,0,0"/>

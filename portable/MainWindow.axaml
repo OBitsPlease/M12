@@ -37,13 +37,20 @@
             <Setter Property="Foreground" Value="#DDE1E7"/>
             <Setter Property="Cursor" Value="SizeAll"/>
         </Style>
+        <Style Selector="local|RotaryKnob.bandKnob">
+            <Setter Property="MinWidth" Value="82"/>
+            <Setter Property="MinHeight" Value="88"/>
+        </Style>
     </Window.Styles>
 
     <Grid Margin="14" RowDefinitions="Auto,220,*,86">
         <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,Auto,Auto" ColumnSpacing="12">
             <StackPanel Margin="0,0,14,0">
                 <TextBlock Text="BitsPleaseYT M12" FontSize="25" FontWeight="SemiBold"/>
-                <TextBlock Text="12-BAND MULTIBAND COMPRESSOR" FontSize="10" Foreground="#F25FCA"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="12-BAND MULTIBAND COMPRESSOR" FontSize="10" Foreground="#F25FCA"/>
+                    <TextBlock Text="{Binding VersionLabel}" FontSize="10" Foreground="#74E062"/>
+                </StackPanel>
             </StackPanel>
             <StackPanel Grid.Column="1">
                 <TextBlock Text="SOURCE · MIC / INTERFACE / VIRTUAL" Foreground="#AEB4BF" FontSize="10"/>
@@ -60,7 +67,7 @@
                     Background="#A8D72E" Foreground="#111318" FontWeight="SemiBold" Padding="18,8"/>
         </Grid>
 
-        <Grid Grid.Row="1" Margin="0,10,0,8" RowDefinitions="*,58">
+        <Grid Grid.Row="1" Margin="0,10,0,8" RowDefinitions="*,76">
             <Border Background="#111317" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5" ClipToBounds="True">
                 <Canvas x:Name="GraphCanvas" SizeChanged="GraphCanvas_SizeChanged"/>
             </Border>
@@ -77,47 +84,47 @@
             </ItemsControl>
         </Grid>
 
-        <Grid Grid.Row="2" Margin="0,8" ColumnDefinitions="118,*">
+        <Grid Grid.Row="2" Margin="0,8" ColumnDefinitions="220,*">
             <Border Background="#181B20" BorderBrush="#4B515B" BorderThickness="1" CornerRadius="5" Margin="3,0" Padding="7,8">
                 <Grid RowDefinitions="48,*">
                     <StackPanel>
                         <TextBlock Text="GLOBAL" FontSize="15" FontWeight="SemiBold" Foreground="#74E062" HorizontalAlignment="Center"/>
                         <TextBlock Text="ALL BANDS" Foreground="#9299A5" FontSize="9" HorizontalAlignment="Center"/>
                     </StackPanel>
-                    <UniformGrid Grid.Row="1" Rows="6">
-                        <Grid ColumnDefinitions="42,*">
+                    <UniformGrid Grid.Row="1" Rows="3" Columns="2">
+                        <Grid RowDefinitions="Auto,*">
                             <TextBlock Text="THRESH" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalThresholdKnob" Grid.Column="1" Tag="Threshold"
+                            <local:RotaryKnob Classes="bandKnob" x:Name="GlobalThresholdKnob" Grid.Row="1" Tag="Threshold"
                                               Minimum="-30" Maximum="30" Step="0.5" ValueFormat="+0.0;-0.0;0.0 dB"
                                               ValueChanged="GlobalControl_Changed"/>
                         </Grid>
-                        <Grid ColumnDefinitions="42,*">
+                        <Grid RowDefinitions="Auto,*">
                             <TextBlock Text="RATIO" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalRatioKnob" Grid.Column="1" Tag="Ratio"
+                            <local:RotaryKnob Classes="bandKnob" x:Name="GlobalRatioKnob" Grid.Row="1" Tag="Ratio"
                                               Minimum="-9.5" Maximum="9.5" Step="0.1" ValueFormat="+0.0;-0.0;0.0"
                                               ValueChanged="GlobalControl_Changed"/>
                         </Grid>
-                        <Grid ColumnDefinitions="42,*">
+                        <Grid RowDefinitions="Auto,*">
                             <TextBlock Text="RANGE" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalRangeKnob" Grid.Column="1" Tag="Range"
+                            <local:RotaryKnob Classes="bandKnob" x:Name="GlobalRangeKnob" Grid.Row="1" Tag="Range"
                                               Minimum="-15" Maximum="15" Step="0.5" ValueFormat="+0.0;-0.0;0.0 dB"
                                               ValueChanged="GlobalControl_Changed"/>
                         </Grid>
-                        <Grid ColumnDefinitions="42,*">
+                        <Grid RowDefinitions="Auto,*">
                             <TextBlock Text="GAIN" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalGainKnob" Grid.Column="1" Tag="MakeupGain"
+                            <local:RotaryKnob Classes="bandKnob" x:Name="GlobalGainKnob" Grid.Row="1" Tag="MakeupGain"
                                               Minimum="-12" Maximum="12" Step="0.5" ValueFormat="+0.0;-0.0;0.0 dB"
                                               ValueChanged="GlobalControl_Changed"/>
                         </Grid>
-                        <Grid ColumnDefinitions="42,*">
+                        <Grid RowDefinitions="Auto,*">
                             <TextBlock Text="ATTACK" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalAttackKnob" Grid.Column="1" Tag="Attack"
+                            <local:RotaryKnob Classes="bandKnob" x:Name="GlobalAttackKnob" Grid.Row="1" Tag="Attack"
                                               Minimum="-49.75" Maximum="49.75" Step="0.5" ValueFormat="+0.0;-0.0;0.0 ms"
                                               ValueChanged="GlobalControl_Changed"/>
                         </Grid>
-                        <Grid ColumnDefinitions="42,*">
+                        <Grid RowDefinitions="Auto,*">
                             <TextBlock Text="RELEASE" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                            <local:RotaryKnob x:Name="GlobalReleaseKnob" Grid.Column="1" Tag="Release"
+                            <local:RotaryKnob Classes="bandKnob" x:Name="GlobalReleaseKnob" Grid.Row="1" Tag="Release"
                                               Minimum="-490" Maximum="490" Step="5" ValueFormat="+0;-0;0 ms"
                                               ValueChanged="GlobalControl_Changed"/>
                         </Grid>
@@ -125,66 +132,66 @@
                 </Grid>
             </Border>
 
-            <ItemsControl Grid.Column="1" ItemsSource="{Binding Bands}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate><UniformGrid Rows="2" Columns="6"/></ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Background="#202329" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5"
-                                Margin="4" Padding="10,8" MinWidth="205" MinHeight="260">
-                            <Grid RowDefinitions="Auto,Auto,*">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="{Binding Color}"/>
-                                        <TextBlock Text="{Binding FrequencyLabel}" Foreground="#9299A5" FontSize="10"/>
-                                    </StackPanel>
-                                    <ProgressBar Grid.Column="1" Width="6" Height="43" Orientation="Vertical"
-                                                 Maximum="30" Value="{Binding GainReduction}" Foreground="{Binding Color}"/>
-                                </Grid>
-                                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,5">
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Bands}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><UniformGrid Columns="4"/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#202329" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5"
+                                    Margin="6" Padding="14,10" MinWidth="270" MinHeight="285">
+                            <Grid RowDefinitions="Auto,6,Auto,*" RowSpacing="5">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="{Binding Color}"/>
+                                    <TextBlock Text="{Binding FrequencyLabel}" Foreground="#9299A5" FontSize="10"/>
+                                </StackPanel>
+                                <ProgressBar Grid.Row="1" Height="6" Minimum="0" Maximum="30"
+                                             Value="{Binding GainReduction}" Foreground="{Binding Color}"/>
+                                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,3,0,2">
                                     <ToggleButton Content="S" IsChecked="{Binding IsSolo}" Width="32" Margin="0,0,5,0"/>
                                     <ToggleButton Content="BYP" IsChecked="{Binding IsBypassed}" Width="46"/>
                                     <TextBlock Text="{Binding GainReduction, StringFormat='{}{0:F1} dB GR'}"
                                                Foreground="#AEB4BE" FontSize="10" Margin="8,0,0,0"/>
                                 </StackPanel>
-                                <UniformGrid Grid.Row="2" Rows="2" Columns="3">
+                                <UniformGrid Grid.Row="3" Rows="2" Columns="3">
                                     <Grid RowDefinitions="Auto,*">
                                         <TextBlock Text="THRESH" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                                        <local:RotaryKnob Grid.Row="1" Minimum="-60" Maximum="0" Step="0.5"
+                                        <local:RotaryKnob Classes="bandKnob" Grid.Row="1" Minimum="-60" Maximum="0" Step="0.5"
                                                           Value="{Binding Threshold, Mode=TwoWay}" ValueFormat="0.0 dB"/>
                                     </Grid>
                                     <Grid RowDefinitions="Auto,*">
                                         <TextBlock Text="RATIO" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                                        <local:RotaryKnob Grid.Row="1" Minimum="1" Maximum="20" Step="0.1"
+                                        <local:RotaryKnob Classes="bandKnob" Grid.Row="1" Minimum="1" Maximum="20" Step="0.1"
                                                           Value="{Binding Ratio, Mode=TwoWay}" ValueFormat="0.0:1"/>
                                     </Grid>
                                     <Grid RowDefinitions="Auto,*">
                                         <TextBlock Text="RANGE" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                                        <local:RotaryKnob Grid.Row="1" Minimum="0" Maximum="30" Step="0.5"
+                                        <local:RotaryKnob Classes="bandKnob" Grid.Row="1" Minimum="0" Maximum="30" Step="0.5"
                                                           Value="{Binding Range, Mode=TwoWay}" ValueFormat="0.0 dB"/>
                                     </Grid>
                                     <Grid RowDefinitions="Auto,*">
                                         <TextBlock Text="GAIN" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                                        <local:RotaryKnob Grid.Row="1" Minimum="-12" Maximum="12" Step="0.5"
+                                        <local:RotaryKnob Classes="bandKnob" Grid.Row="1" Minimum="-12" Maximum="12" Step="0.5"
                                                           Value="{Binding MakeupGain, Mode=TwoWay}" ValueFormat="+0.0;-0.0;0.0 dB"/>
                                     </Grid>
                                     <Grid RowDefinitions="Auto,*">
                                         <TextBlock Text="ATTACK" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                                        <local:RotaryKnob Grid.Row="1" Minimum="0.5" Maximum="100" Step="0.5"
+                                        <local:RotaryKnob Classes="bandKnob" Grid.Row="1" Minimum="0.5" Maximum="100" Step="0.5"
                                                           Value="{Binding Attack, Mode=TwoWay}" ValueFormat="0.0 ms"/>
                                     </Grid>
                                     <Grid RowDefinitions="Auto,*">
                                         <TextBlock Text="RELEASE" FontSize="9" Foreground="#BCC1CA" HorizontalAlignment="Center"/>
-                                        <local:RotaryKnob Grid.Row="1" Minimum="20" Maximum="1000" Step="5"
+                                        <local:RotaryKnob Classes="bandKnob" Grid.Row="1" Minimum="20" Maximum="1000" Step="5"
                                                           Value="{Binding Release, Mode=TwoWay}" ValueFormat="0 ms"/>
                                     </Grid>
                                 </UniformGrid>
                             </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Grid>
 
         <Border Grid.Row="3" Background="#1B1E23" BorderBrush="#3D424B" BorderThickness="1" CornerRadius="5" Padding="12">

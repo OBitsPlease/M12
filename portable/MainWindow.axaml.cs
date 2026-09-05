@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -63,6 +64,8 @@ public partial class MainWindow : Window
 
     public ObservableCollection<BandSettings> Bands { get; }
     public ObservableCollection<CrossoverSetting> Crossovers { get; }
+    public string VersionLabel { get; } =
+        $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "unknown"}";
     public ObservableCollection<string> PresetNames { get; } =
     [
         "Broadcast Voice",

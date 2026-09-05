@@ -31,8 +31,8 @@ public sealed class RotaryKnob : RangeBase
     }
 
     protected override Size MeasureOverride(Size availableSize) =>
-        new(double.IsInfinity(availableSize.Width) ? 72 : Math.Min(72, availableSize.Width),
-            double.IsInfinity(availableSize.Height) ? 70 : Math.Min(70, availableSize.Height));
+        new(double.IsInfinity(availableSize.Width) ? 96 : Math.Min(96, availableSize.Width),
+            double.IsInfinity(availableSize.Height) ? 88 : Math.Min(88, availableSize.Height));
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
